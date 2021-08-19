@@ -31,6 +31,7 @@ func (p *websocketPeer) Start() {
 		_, msg, err := p.c.ReadMessage()
 		if err != nil {
 			p.gs.RemovePeer(p.id)
+			break
 		}
 
 		p.rc <- &model.PeerMsg{PeerId: p.id, Data: msg}
