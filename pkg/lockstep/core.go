@@ -13,7 +13,6 @@ type lockstepServer struct {
 	peers       map[int]model.Peer
 	rc          chan *model.PeerMsg // receiver channel
 	commands    map[int][]byte      // commands from peers
-	autoStep    bool                // whether change step by latency
 	stepLength  int                 // how many ms to wait after a step
 	currentStep int
 }
@@ -23,15 +22,9 @@ func NewLockStepServer() *lockstepServer {
 		peers:       map[int]model.Peer{},
 		rc:          make(chan *model.PeerMsg),
 		commands:    map[int][]byte{},
-		autoStep:    false,
 		stepLength:  30,
 		currentStep: 0,
 	}
-}
-
-func (s *lockstepServer) SetAutoStep(enable bool) *lockstepServer {
-	s.autoStep = enable
-	return s
 }
 
 func (s *lockstepServer) SetStepLength(ms int) *lockstepServer {
