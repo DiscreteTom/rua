@@ -77,7 +77,7 @@ func (s *lockstepServer) Start() (errs []error) {
 			// reset commands
 			s.commands = map[int][]byte{}
 			// reset timer
-			timer = time.NewTimer(time.Duration(s.stepLength))
+			timer = time.NewTimer(time.Duration(s.stepLength) * time.Millisecond)
 		case <-kbc:
 			loop = false
 		}
