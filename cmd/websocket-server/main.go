@@ -2,11 +2,12 @@ package main
 
 import (
 	"DiscreteTom/rua/pkg/lockstep"
+	"DiscreteTom/rua/pkg/utils"
 	"DiscreteTom/rua/plugin/network/websocket"
 )
 
 func main() {
-	s := lockstep.NewLockStepServer(30, lockstep.Broadcast)
+	s := lockstep.NewLockStepServer(30, utils.BroadcastStepHandler)
 
 	ws := websocket.NewWebsocketListener(":8080", s)
 	go ws.Start()
