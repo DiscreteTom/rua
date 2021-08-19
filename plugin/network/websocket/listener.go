@@ -26,6 +26,7 @@ func (l *websocketListener) Start() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		handler(w, r, l.gs)
 	})
+	log.Println("websocket server is listening at", l.addr)
 	http.ListenAndServe(l.addr, nil)
 }
 
