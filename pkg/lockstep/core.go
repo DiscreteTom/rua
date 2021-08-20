@@ -10,24 +10,28 @@ import (
 )
 
 type LockstepServer struct {
-	peers         map[int]model.Peer
-	rc            chan *model.PeerMsg // receiver channel
-	commands      map[int][]byte      // commands from peers
-	currentStep   int                 // current step number, start from 0
-	stepLength    int                 // how many ms to wait after a step
-	maxStepLength int
-	minStepLength int
+	peers                   map[int]model.Peer
+	stop                    chan bool
+	handleKeyboardInterrupt bool
+	rc                      chan *model.PeerMsg // receiver channel
+	commands                map[int][]byte      // commands from peers
+	currentStep             int                 // current step number, start from 0
+	stepLength              int                 // how many ms to wait after a step
+	maxStepLength           int
+	minStepLength           int
 }
 
 func NewLockStepServer() *LockstepServer {
 	return &LockstepServer{
-		peers:         map[int]model.Peer{},
-		rc:            make(chan *model.PeerMsg),
-		commands:      map[int][]byte{},
-		currentStep:   0,
-		stepLength:    33,  // ~30 step/second
-		maxStepLength: 100, // ~10 step/second
-		minStepLength: 8,   // ~120 step/second
+		peers:                   map[int]model.Peer{},
+		stop:                    make(chan bool),
+		handleKeyboardInterrupt: false,
+		rc:                      make(chan *model.PeerMsg),
+		commands:                map[int][]byte{},
+		currentStep:             0,
+		stepLength:              33,  // ~30 step/second
+		maxStepLength:           100, // ~10 step/second
+		minStepLength:           8,   // ~120 step/second
 	}
 }
 
@@ -60,6 +64,10 @@ func (s *LockstepServer) SetMinStepLength(minStepLength int) *LockstepServer {
 		s.stepLength = s.minStepLength
 	}
 	return s
+}
+
+func (s *LockstepServer) SetHandleKeyboardInterrupt(enable bool) {
+	s.handleKeyboardInterrupt = enable
 }
 
 func (s *LockstepServer) GetCurrentStepLength() int {
@@ -118,6 +126,10 @@ func (s *LockstepServer) Start(stepHandler func(step int, peers map[int]model.Pe
 			// reset timer
 			timer = time.NewTimer(time.Duration(s.stepLength) * time.Millisecond)
 		case <-kbc:
+			if s.handleKeyboardInterrupt {
+				loop = false
+			}
+		case <-s.stop:
 			loop = false
 		}
 	}
@@ -130,4 +142,8 @@ func (s *LockstepServer) Start(stepHandler func(step int, peers map[int]model.Pe
 		delete(s.peers, id)
 	}
 	return errs
+}
+
+func (s *LockstepServer) Stop() {
+	s.stop <- true
 }
