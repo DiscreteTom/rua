@@ -92,7 +92,7 @@ func (s *LockstepServer) RemovePeer(peerId int) error {
 	}
 }
 
-func (s *LockstepServer) Start(stepHandler func(step int, peers map[int]model.Peer, commands map[int][]byte) []error) (errs []error) {
+func (s *LockstepServer) Start(stepHandler func(step int, peers map[int]model.Peer, commands map[int][]byte, s *LockstepServer) []error) (errs []error) {
 	errs = []error{}
 
 	timer := time.NewTimer(time.Duration(s.stepLength))
@@ -111,7 +111,7 @@ func (s *LockstepServer) Start(stepHandler func(step int, peers map[int]model.Pe
 			s.commands[peerMsg.PeerId] = append(s.commands[peerMsg.PeerId], peerMsg.Data...)
 		case <-timer.C:
 			// handle step
-			stepHandler(s.currentStep, s.peers, s.commands)
+			stepHandler(s.currentStep, s.peers, s.commands, s)
 			s.currentStep++
 			// reset commands
 			s.commands = map[int][]byte{}
