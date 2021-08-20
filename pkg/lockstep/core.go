@@ -3,6 +3,7 @@ package lockstep
 import (
 	"DiscreteTom/rua/pkg/model"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -10,25 +11,36 @@ import (
 )
 
 type lockstepServer struct {
-	peers       map[int]model.Peer
-	rc          chan *model.PeerMsg // receiver channel
-	commands    map[int][]byte      // commands from peers
-	stepLength  int                 // how many ms to wait after a step
-	currentStep int
+	peers         map[int]model.Peer
+	rc            chan *model.PeerMsg // receiver channel
+	commands      map[int][]byte      // commands from peers
+	stepLength    int                 // how many ms to wait after a step
+	currentStep   int
+	maxStepLength int
 }
 
 func NewLockStepServer() *lockstepServer {
 	return &lockstepServer{
-		peers:       map[int]model.Peer{},
-		rc:          make(chan *model.PeerMsg),
-		commands:    map[int][]byte{},
-		stepLength:  30,
-		currentStep: 0,
+		peers:         map[int]model.Peer{},
+		rc:            make(chan *model.PeerMsg),
+		commands:      map[int][]byte{},
+		stepLength:    30,
+		currentStep:   0,
+		maxStepLength: 1000,
 	}
 }
 
-func (s *lockstepServer) SetStepLength(ms int) *lockstepServer {
-	s.stepLength = ms
+func (s *lockstepServer) SetStepLength(stepLength int) (err error) {
+	if stepLength <= s.maxStepLength {
+		s.stepLength = stepLength
+	} else {
+		err = fmt.Errorf("step length %d exceed max step length %d", stepLength, s.maxStepLength)
+	}
+	return
+}
+
+func (s *lockstepServer) SetMaxStepLength(maxStepLength int) *lockstepServer {
+	s.maxStepLength = maxStepLength
 	return s
 }
 
