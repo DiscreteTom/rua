@@ -62,6 +62,10 @@ func (s *LockstepServer) SetMinStepLength(minStepLength int) *LockstepServer {
 	return s
 }
 
+func (s *LockstepServer) GetCurrentStepLength() int {
+	return s.stepLength
+}
+
 // Activate a peer and manage its lifecycle.
 func (s *LockstepServer) AddPeer(p model.Peer) {
 	peerId := 0
