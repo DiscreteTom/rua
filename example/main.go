@@ -2,7 +2,6 @@ package main
 
 import (
 	"DiscreteTom/rua/pkg/lockstep"
-	"DiscreteTom/rua/pkg/utils"
 	"DiscreteTom/rua/plugin/network/kcp"
 	"DiscreteTom/rua/plugin/network/websocket"
 	"crypto/sha1"
@@ -20,5 +19,5 @@ func main() {
 	k := kcp.NewKcpListener(":8081", s, key, 4096)
 	go k.Start()
 
-	s.Start(utils.BroadcastStepHandler)
+	s.Start(broadcastStepHandler)
 }
