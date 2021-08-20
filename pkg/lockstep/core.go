@@ -3,7 +3,6 @@ package lockstep
 import (
 	"DiscreteTom/rua/pkg/model"
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -14,9 +13,10 @@ type lockstepServer struct {
 	peers         map[int]model.Peer
 	rc            chan *model.PeerMsg // receiver channel
 	commands      map[int][]byte      // commands from peers
+	currentStep   int                 // current step number, start from 0
 	stepLength    int                 // how many ms to wait after a step
-	currentStep   int
 	maxStepLength int
+	minStepLength int
 }
 
 func NewLockStepServer() *lockstepServer {
@@ -24,26 +24,45 @@ func NewLockStepServer() *lockstepServer {
 		peers:         map[int]model.Peer{},
 		rc:            make(chan *model.PeerMsg),
 		commands:      map[int][]byte{},
-		stepLength:    30,
 		currentStep:   0,
-		maxStepLength: 1000,
+		stepLength:    33,  // ~30 step/second
+		maxStepLength: 100, // ~10 step/second
+		minStepLength: 8,   // ~120 step/second
 	}
 }
 
-func (s *lockstepServer) SetStepLength(stepLength int) (err error) {
-	if stepLength <= s.maxStepLength {
-		s.stepLength = stepLength
+// Set the current step length.
+// The step length won't be higher than `maxStepLength` and lower than `minStepLength`.
+func (s *lockstepServer) SetStepLength(stepLength int) *lockstepServer {
+	if stepLength > s.maxStepLength {
+		s.stepLength = s.maxStepLength
+	} else if stepLength < s.minStepLength {
+		s.stepLength = s.minStepLength
 	} else {
-		err = fmt.Errorf("step length %d exceed max step length %d", stepLength, s.maxStepLength)
+		s.stepLength = stepLength
 	}
-	return
-}
-
-func (s *lockstepServer) SetMaxStepLength(maxStepLength int) *lockstepServer {
-	s.maxStepLength = maxStepLength
 	return s
 }
 
+// Set the max step length and ensure the current step length is valid.
+func (s *lockstepServer) SetMaxStepLength(maxStepLength int) *lockstepServer {
+	s.maxStepLength = maxStepLength
+	if s.stepLength > s.maxStepLength {
+		s.stepLength = s.maxStepLength
+	}
+	return s
+}
+
+// Set the min step length and ensure the current step length is valid.
+func (s *lockstepServer) SetMinStepLength(minStepLength int) *lockstepServer {
+	s.minStepLength = minStepLength
+	if s.stepLength < s.minStepLength {
+		s.stepLength = s.minStepLength
+	}
+	return s
+}
+
+// Activate a peer and manage its lifecycle.
 func (s *lockstepServer) AddPeer(p model.Peer) {
 	peerId := 0
 	for {
@@ -58,6 +77,7 @@ func (s *lockstepServer) AddPeer(p model.Peer) {
 	go p.Start()
 }
 
+// Close the peer and untrack it.
 func (s *lockstepServer) RemovePeer(peerId int) error {
 	if peer, ok := s.peers[peerId]; ok {
 		peer.Close()
