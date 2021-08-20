@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-type lockstepServer struct {
+type LockstepServer struct {
 	peers         map[int]model.Peer
 	rc            chan *model.PeerMsg // receiver channel
 	commands      map[int][]byte      // commands from peers
@@ -19,8 +19,8 @@ type lockstepServer struct {
 	minStepLength int
 }
 
-func NewLockStepServer() *lockstepServer {
-	return &lockstepServer{
+func NewLockStepServer() *LockstepServer {
+	return &LockstepServer{
 		peers:         map[int]model.Peer{},
 		rc:            make(chan *model.PeerMsg),
 		commands:      map[int][]byte{},
@@ -33,7 +33,7 @@ func NewLockStepServer() *lockstepServer {
 
 // Set the current step length.
 // The step length won't be higher than `maxStepLength` and lower than `minStepLength`.
-func (s *lockstepServer) SetStepLength(stepLength int) *lockstepServer {
+func (s *LockstepServer) SetStepLength(stepLength int) *LockstepServer {
 	if stepLength > s.maxStepLength {
 		s.stepLength = s.maxStepLength
 	} else if stepLength < s.minStepLength {
@@ -45,7 +45,7 @@ func (s *lockstepServer) SetStepLength(stepLength int) *lockstepServer {
 }
 
 // Set the max step length and ensure the current step length is valid.
-func (s *lockstepServer) SetMaxStepLength(maxStepLength int) *lockstepServer {
+func (s *LockstepServer) SetMaxStepLength(maxStepLength int) *LockstepServer {
 	s.maxStepLength = maxStepLength
 	if s.stepLength > s.maxStepLength {
 		s.stepLength = s.maxStepLength
@@ -54,7 +54,7 @@ func (s *lockstepServer) SetMaxStepLength(maxStepLength int) *lockstepServer {
 }
 
 // Set the min step length and ensure the current step length is valid.
-func (s *lockstepServer) SetMinStepLength(minStepLength int) *lockstepServer {
+func (s *LockstepServer) SetMinStepLength(minStepLength int) *LockstepServer {
 	s.minStepLength = minStepLength
 	if s.stepLength < s.minStepLength {
 		s.stepLength = s.minStepLength
@@ -63,7 +63,7 @@ func (s *lockstepServer) SetMinStepLength(minStepLength int) *lockstepServer {
 }
 
 // Activate a peer and manage its lifecycle.
-func (s *lockstepServer) AddPeer(p model.Peer) {
+func (s *LockstepServer) AddPeer(p model.Peer) {
 	peerId := 0
 	for {
 		_, ok := s.peers[peerId]
@@ -78,7 +78,7 @@ func (s *lockstepServer) AddPeer(p model.Peer) {
 }
 
 // Close the peer and untrack it.
-func (s *lockstepServer) RemovePeer(peerId int) error {
+func (s *LockstepServer) RemovePeer(peerId int) error {
 	if peer, ok := s.peers[peerId]; ok {
 		peer.Close()
 		delete(s.peers, peerId)
@@ -88,7 +88,7 @@ func (s *lockstepServer) RemovePeer(peerId int) error {
 	}
 }
 
-func (s *lockstepServer) Start(stepHandler func(step int, peers map[int]model.Peer, commands map[int][]byte) []error) (errs []error) {
+func (s *LockstepServer) Start(stepHandler func(step int, peers map[int]model.Peer, commands map[int][]byte) []error) (errs []error) {
 	errs = []error{}
 
 	timer := time.NewTimer(time.Duration(s.stepLength))
