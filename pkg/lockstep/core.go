@@ -66,8 +66,9 @@ func (s *LockstepServer) SetMinStepLength(minStepLength int) *LockstepServer {
 	return s
 }
 
-func (s *LockstepServer) SetHandleKeyboardInterrupt(enable bool) {
+func (s *LockstepServer) SetHandleKeyboardInterrupt(enable bool) *LockstepServer {
 	s.handleKeyboardInterrupt = enable
+	return s
 }
 
 func (s *LockstepServer) GetCurrentStepLength() int {
