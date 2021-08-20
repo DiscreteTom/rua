@@ -22,12 +22,12 @@ func NewWebsocketListener(addr string, gs model.GameServer) *websocketListener {
 	}
 }
 
-func (l *websocketListener) Start() {
+func (l *websocketListener) Start() error {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		handler(w, r, l.gs)
 	})
 	log.Println("websocket server is listening at", l.addr)
-	http.ListenAndServe(l.addr, nil)
+	return http.ListenAndServe(l.addr, nil)
 }
 
 func handler(w http.ResponseWriter, r *http.Request, gs model.GameServer) {

@@ -23,19 +23,17 @@ func NewKcpListener(addr string, gs model.GameServer, key []byte, bufSize int) *
 	}
 }
 
-func (l *kcpListener) Start() {
+func (l *kcpListener) Start() error {
 	log.Println("kcp server is listening at", l.addr)
 	block, _ := kcp.NewAESBlockCrypt(l.key)
 	listener, err := kcp.ListenWithOptions(l.addr, block, 10, 3)
 	if err != nil {
-		log.Println(err)
-		return
+		return err
 	}
 	for {
 		c, err := listener.AcceptKCP()
 		if err != nil {
-			log.Println(err)
-			break
+			return err
 		}
 		p := &kcpPeer{c: c, gs: l.gs, bufSize: l.bufSize}
 		l.gs.AddPeer(p)
