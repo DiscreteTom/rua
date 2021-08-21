@@ -16,6 +16,7 @@ type kcpListener struct {
 	parityShards int
 	crypt        string
 	peerTimeout  int // in ms
+	guardian     func(c *kcp.UDPSession, gs *rua.GameServer) bool
 }
 
 func NewKcpListener(addr string, gs rua.GameServer, key []byte, bufSize int) *kcpListener {
@@ -28,6 +29,7 @@ func NewKcpListener(addr string, gs rua.GameServer, key []byte, bufSize int) *kc
 		parityShards: 3,
 		crypt:        "aes",
 		peerTimeout:  1000,
+		guardian:     nil,
 	}
 }
 
@@ -51,6 +53,11 @@ func (l *kcpListener) WithPeerTimeout(t int) *kcpListener {
 	return l
 }
 
+func (l *kcpListener) WithGuardian(g func(c *kcp.UDPSession, gs *rua.GameServer) bool) *kcpListener {
+	l.guardian = g
+	return l
+}
+
 func (l *kcpListener) Start() error {
 	log.Println("kcp server is listening at", l.addr)
 	block, _ := blockCrypt(l.crypt, l.key)
@@ -63,8 +70,10 @@ func (l *kcpListener) Start() error {
 		if err != nil {
 			return err
 		}
-		p := &kcpPeer{c: c, gs: l.gs, bufSize: l.bufSize, timeout: l.peerTimeout}
-		l.gs.AddPeer(p)
+		if l.guardian == nil || l.guardian(c, &l.gs) {
+			p := &kcpPeer{c: c, gs: l.gs, bufSize: l.bufSize, timeout: l.peerTimeout}
+			l.gs.AddPeer(p)
+		}
 	}
 }
 
