@@ -39,7 +39,7 @@ func main() {
 }
 
 // Change step length according to the 1st peer's latency.
-func dynamicStepHandler(step int, peers map[int]model.Peer, commands map[int][]lockstep.LockstepCommand, s *lockstep.LockstepServer) (errs []error) {
+func dynamicStepHandler(step int, peers map[int]model.Peer, commands map[int][]model.PeerCommand, s *lockstep.LockstepServer) (errs []error) {
 	errs = []error{}
 	if p, ok := peers[0]; ok {
 		if len(commands[0]) != 0 && len(commands[0][0].Data) != 0 {

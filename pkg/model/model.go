@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 type Peer interface {
 	Activate(chan *PeerMsg, int)
 	Write([]byte) error
@@ -15,4 +17,9 @@ type PeerMsg struct {
 type GameServer interface {
 	AddPeer(Peer)
 	RemovePeer(int) error
+}
+
+type PeerCommand struct {
+	Data []byte
+	Time time.Time
 }
