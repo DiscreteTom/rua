@@ -1,7 +1,6 @@
-package lockstep
+package rua
 
 import (
-	"DiscreteTom/rua/pkg/model"
 	"errors"
 	"log"
 	"os"
@@ -10,24 +9,24 @@ import (
 )
 
 type LockstepServer struct {
-	peers                   map[int]model.Peer
+	peers                   map[int]Peer
 	stop                    chan bool
 	handleKeyboardInterrupt bool
-	rc                      chan *model.PeerMsg // receiver channel
-	peerMsgs                []model.PeerMsg     // msgs from peers
-	currentStep             int                 // current step number, start from 0
-	stepLength              int                 // how many ms to wait after a step
+	rc                      chan *PeerMsg // receiver channel
+	peerMsgs                []PeerMsg     // msgs from peers
+	currentStep             int           // current step number, start from 0
+	stepLength              int           // how many ms to wait after a step
 	maxStepLength           int
 	minStepLength           int
 }
 
 func NewLockStepServer() *LockstepServer {
 	return &LockstepServer{
-		peers:                   map[int]model.Peer{},
+		peers:                   map[int]Peer{},
 		stop:                    make(chan bool),
 		handleKeyboardInterrupt: false,
-		rc:                      make(chan *model.PeerMsg),
-		peerMsgs:                []model.PeerMsg{},
+		rc:                      make(chan *PeerMsg),
+		peerMsgs:                []PeerMsg{},
 		currentStep:             0,
 		stepLength:              33,  // ~30 step/second
 		maxStepLength:           100, // ~10 step/second
@@ -76,7 +75,7 @@ func (s *LockstepServer) GetCurrentStepLength() int {
 }
 
 // Activate a peer and manage its lifecycle.
-func (s *LockstepServer) AddPeer(p model.Peer) {
+func (s *LockstepServer) AddPeer(p Peer) {
 	peerId := 0
 	for {
 		_, ok := s.peers[peerId]
@@ -101,7 +100,7 @@ func (s *LockstepServer) RemovePeer(peerId int) error {
 	}
 }
 
-func (s *LockstepServer) Start(stepHandler func(step int, peers map[int]model.Peer, peerMsgs []model.PeerMsg, s *LockstepServer) []error) (errs []error) {
+func (s *LockstepServer) Start(stepHandler func(step int, peers map[int]Peer, peerMsgs []PeerMsg, s *LockstepServer) []error) (errs []error) {
 	errs = []error{}
 
 	timer := time.NewTimer(time.Duration(s.stepLength))
@@ -126,7 +125,7 @@ func (s *LockstepServer) Start(stepHandler func(step int, peers map[int]model.Pe
 			}
 			s.currentStep++
 			// reset msgs
-			s.peerMsgs = []model.PeerMsg{}
+			s.peerMsgs = []PeerMsg{}
 			// reset timer
 			timer = time.NewTimer(time.Duration(s.stepLength) * time.Millisecond)
 		case <-kbc:

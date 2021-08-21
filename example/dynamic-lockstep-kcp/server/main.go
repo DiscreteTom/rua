@@ -1,8 +1,7 @@
 package main
 
 import (
-	"DiscreteTom/rua/pkg/lockstep"
-	"DiscreteTom/rua/pkg/model"
+	"DiscreteTom/rua"
 	"DiscreteTom/rua/plugin/network/kcp"
 	"crypto/sha1"
 	"encoding/binary"
@@ -14,7 +13,7 @@ import (
 
 func main() {
 	errChan := make(chan error)
-	s := lockstep.NewLockStepServer().SetHandleKeyboardInterrupt(true)
+	s := rua.NewLockStepServer().SetHandleKeyboardInterrupt(true)
 
 	key := pbkdf2.Key([]byte("demo pass"), []byte("demo salt"), 1024, 32, sha1.New)
 	k := kcp.NewKcpListener(":8081", s, key, 4096)
@@ -39,7 +38,7 @@ func main() {
 }
 
 // Change step length according to the 1st msg's latency.
-func dynamicStepHandler(step int, peers map[int]model.Peer, msgs []model.PeerMsg, s *lockstep.LockstepServer) (errs []error) {
+func dynamicStepHandler(step int, peers map[int]rua.Peer, msgs []rua.PeerMsg, s *rua.LockstepServer) (errs []error) {
 	errs = []error{}
 
 	if len(msgs) != 0 && len(msgs[0].Data) != 0 {

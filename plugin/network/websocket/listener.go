@@ -1,7 +1,7 @@
 package websocket
 
 import (
-	"DiscreteTom/rua/pkg/model"
+	"DiscreteTom/rua"
 	"log"
 	"net/http"
 
@@ -12,10 +12,10 @@ var upgrader = websocket.Upgrader{}
 
 type websocketListener struct {
 	addr string
-	gs   model.GameServer
+	gs   rua.GameServer
 }
 
-func NewWebsocketListener(addr string, gs model.GameServer) *websocketListener {
+func NewWebsocketListener(addr string, gs rua.GameServer) *websocketListener {
 	return &websocketListener{
 		addr: addr,
 		gs:   gs,
@@ -30,7 +30,7 @@ func (l *websocketListener) Start() error {
 	return http.ListenAndServe(l.addr, nil)
 }
 
-func handler(w http.ResponseWriter, r *http.Request, gs model.GameServer) {
+func handler(w http.ResponseWriter, r *http.Request, gs rua.GameServer) {
 	// upgrade http to websocket
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {

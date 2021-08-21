@@ -1,7 +1,7 @@
 package kcp
 
 import (
-	"DiscreteTom/rua/pkg/model"
+	"DiscreteTom/rua"
 	"log"
 	"time"
 
@@ -9,15 +9,15 @@ import (
 )
 
 type kcpPeer struct {
-	rc      chan *model.PeerMsg // receiver channel
-	id      int                 // peer id
+	rc      chan *rua.PeerMsg // receiver channel
+	id      int               // peer id
 	c       *kcp.UDPSession
-	gs      model.GameServer
+	gs      rua.GameServer
 	bufSize int
 	timeout int
 }
 
-func (p *kcpPeer) Activate(rc chan *model.PeerMsg, id int) {
+func (p *kcpPeer) Activate(rc chan *rua.PeerMsg, id int) {
 	p.rc = rc
 	p.id = id
 }
@@ -45,6 +45,6 @@ func (p *kcpPeer) Start() {
 		}
 		p.c.SetReadDeadline(time.Now().Add(time.Duration(p.timeout) * time.Millisecond))
 
-		p.rc <- &model.PeerMsg{PeerId: p.id, Data: buf[:n], Time: time.Now()}
+		p.rc <- &rua.PeerMsg{PeerId: p.id, Data: buf[:n], Time: time.Now()}
 	}
 }

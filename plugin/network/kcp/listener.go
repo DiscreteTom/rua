@@ -1,7 +1,7 @@
 package kcp
 
 import (
-	"DiscreteTom/rua/pkg/model"
+	"DiscreteTom/rua"
 	"log"
 
 	"github.com/xtaci/kcp-go/v5"
@@ -9,7 +9,7 @@ import (
 
 type kcpListener struct {
 	addr         string
-	gs           model.GameServer
+	gs           rua.GameServer
 	key          []byte
 	bufSize      int
 	dataShards   int
@@ -18,7 +18,7 @@ type kcpListener struct {
 	peerTimeout  int // in ms
 }
 
-func NewKcpListener(addr string, gs model.GameServer, key []byte, bufSize int) *kcpListener {
+func NewKcpListener(addr string, gs rua.GameServer, key []byte, bufSize int) *kcpListener {
 	return &kcpListener{
 		addr:         addr,
 		gs:           gs,

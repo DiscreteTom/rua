@@ -1,4 +1,4 @@
-package model
+package rua
 
 import "time"
 

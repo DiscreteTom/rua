@@ -1,8 +1,7 @@
 package main
 
 import (
-	"DiscreteTom/rua/pkg/lockstep"
-	"DiscreteTom/rua/pkg/model"
+	"DiscreteTom/rua"
 	"DiscreteTom/rua/plugin/network/websocket"
 	"fmt"
 	"log"
@@ -10,7 +9,7 @@ import (
 
 func main() {
 	errChan := make(chan error)
-	s := lockstep.NewLockStepServer().SetHandleKeyboardInterrupt(true)
+	s := rua.NewLockStepServer().SetHandleKeyboardInterrupt(true)
 
 	ws := websocket.NewWebsocketListener(":8080", s)
 	go func() {
@@ -33,7 +32,7 @@ func main() {
 	}
 }
 
-func broadcastStepHandler(step int, peers map[int]model.Peer, msgs []model.PeerMsg, _ *lockstep.LockstepServer) (errs []error) {
+func broadcastStepHandler(step int, peers map[int]rua.Peer, msgs []rua.PeerMsg, _ *rua.LockstepServer) (errs []error) {
 	// compact commands in one byte array
 	result := []byte(fmt.Sprintf("step: %d\n", step))
 	for _, msg := range msgs {

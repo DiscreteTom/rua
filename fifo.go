@@ -1,7 +1,6 @@
-package fifo
+package rua
 
 import (
-	"DiscreteTom/rua/pkg/model"
 	"errors"
 	"log"
 	"os"
@@ -9,18 +8,18 @@ import (
 )
 
 type FifoServer struct {
-	peers                   map[int]model.Peer
+	peers                   map[int]Peer
 	stop                    chan bool
 	handleKeyboardInterrupt bool
-	rc                      chan *model.PeerMsg // receiver channel
+	rc                      chan *PeerMsg // receiver channel
 }
 
 func NewFifoServer() *FifoServer {
 	return &FifoServer{
-		peers:                   map[int]model.Peer{},
+		peers:                   map[int]Peer{},
 		stop:                    make(chan bool),
 		handleKeyboardInterrupt: false,
-		rc:                      make(chan *model.PeerMsg),
+		rc:                      make(chan *PeerMsg),
 	}
 }
 
@@ -30,7 +29,7 @@ func (s *FifoServer) SetHandleKeyboardInterrupt(enable bool) *FifoServer {
 }
 
 // Activate a peer and manage its lifecycle.
-func (s *FifoServer) AddPeer(p model.Peer) {
+func (s *FifoServer) AddPeer(p Peer) {
 	peerId := 0
 	for {
 		_, ok := s.peers[peerId]
@@ -55,7 +54,7 @@ func (s *FifoServer) RemovePeer(peerId int) error {
 	}
 }
 
-func (s *FifoServer) Start(stepHandler func(peers map[int]model.Peer, m *model.PeerMsg, s *FifoServer) []error) (errs []error) {
+func (s *FifoServer) Start(stepHandler func(peers map[int]Peer, m *PeerMsg, s *FifoServer) []error) (errs []error) {
 	errs = []error{}
 
 	// keyboard interrupt handler channel
