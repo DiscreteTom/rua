@@ -100,6 +100,10 @@ func (s *LockstepServer) RemovePeer(peerId int) error {
 	}
 }
 
+func (s *LockstepServer) GetPeerCount() int {
+	return len(s.peers)
+}
+
 func (s *LockstepServer) Start(stepHandler func(step int, peers map[int]Peer, peerMsgs []PeerMsg, s *LockstepServer) []error) (errs []error) {
 	errs = []error{}
 

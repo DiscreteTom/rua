@@ -54,6 +54,10 @@ func (s *FifoServer) RemovePeer(peerId int) error {
 	}
 }
 
+func (s *FifoServer) GetPeerCount() int {
+	return len(s.peers)
+}
+
 func (s *FifoServer) Start(stepHandler func(peers map[int]Peer, m *PeerMsg, s *FifoServer) []error) (errs []error) {
 	errs = []error{}
 
