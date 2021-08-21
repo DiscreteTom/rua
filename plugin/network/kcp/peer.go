@@ -2,6 +2,8 @@ package kcp
 
 import (
 	"DiscreteTom/rua/pkg/model"
+	"log"
+	"time"
 
 	"github.com/xtaci/kcp-go/v5"
 )
@@ -12,6 +14,7 @@ type kcpPeer struct {
 	c       *kcp.UDPSession
 	gs      model.GameServer
 	bufSize int
+	timeout int
 }
 
 func (p *kcpPeer) Activate(rc chan *model.PeerMsg, id int) {
@@ -29,13 +32,18 @@ func (p *kcpPeer) Close() error {
 }
 
 func (p *kcpPeer) Start() {
+	p.c.SetReadDeadline(time.Now().Add(time.Duration(p.timeout) * time.Millisecond))
 	for {
 		buf := make([]byte, p.bufSize)
 		n, err := p.c.Read(buf)
 		if err != nil {
+			if err.Error() == "timeout" {
+				log.Printf("peer[%d] timeout\n", p.id)
+			}
 			p.gs.RemovePeer(p.id)
 			break
 		}
+		p.c.SetReadDeadline(time.Now().Add(time.Duration(p.timeout) * time.Millisecond))
 
 		p.rc <- &model.PeerMsg{PeerId: p.id, Data: buf[:n]}
 	}
