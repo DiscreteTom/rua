@@ -33,7 +33,7 @@ func main() {
 }
 
 func broadcastStepHandler(step int, peers map[int]rua.Peer, msgs []rua.PeerMsg, _ *rua.LockstepServer) (errs []error) {
-	// compact commands in one byte array
+	// compact msgs in one byte array
 	result := []byte(fmt.Sprintf("step: %d\n", step))
 	for _, msg := range msgs {
 		result = append(result, []byte(fmt.Sprintf("from %d:\n", msg.PeerId))...)

@@ -18,7 +18,7 @@ func main() {
 
 	serverErrsChan := make(chan []error)
 	go func() {
-		serverErrsChan <- s.Start(broadcastStepHandler)
+		serverErrsChan <- s.Start(broadcastFifoHandler)
 	}()
 
 	select {
@@ -32,8 +32,8 @@ func main() {
 	}
 }
 
-func broadcastStepHandler(peers map[int]rua.Peer, msg *rua.PeerMsg, _ *rua.FifoServer) (errs []error) {
-	// compact commands in one byte array
+func broadcastFifoHandler(peers map[int]rua.Peer, msg *rua.PeerMsg, _ *rua.FifoServer) (errs []error) {
+	// compact msg in one byte array
 	result := []byte{}
 	result = append(result, []byte(fmt.Sprintf("from %d:\n", msg.PeerId))...)
 	result = append(result, msg.Data...)
