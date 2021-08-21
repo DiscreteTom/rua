@@ -10,7 +10,9 @@ import (
 
 func main() {
 	errChan := make(chan error)
-	s := rua.NewFifoServer().SetHandleKeyboardInterrupt(true)
+	s := rua.NewEventDrivenServer().
+		SetHandleKeyboardInterrupt(true).
+		On(rua.ReceivePeerMsg, broadcastFifoHandler)
 
 	go func() {
 		errChan <- websocket.NewWebsocketListener(":8080", s).Start()
@@ -18,7 +20,7 @@ func main() {
 
 	serverErrsChan := make(chan []error)
 	go func() {
-		serverErrsChan <- s.Start(broadcastFifoHandler)
+		serverErrsChan <- s.Start()
 	}()
 
 	select {
@@ -32,7 +34,7 @@ func main() {
 	}
 }
 
-func broadcastFifoHandler(peers map[int]rua.Peer, msg *rua.PeerMsg, _ *rua.FifoServer) (errs []error) {
+func broadcastFifoHandler(peers map[int]rua.Peer, msg *rua.PeerMsg, _ *rua.EventDrivenServer) {
 	// compact msg in one byte array
 	result := []byte{}
 	result = append(result, []byte(fmt.Sprintf("from %d:\n", msg.PeerId))...)
@@ -42,5 +44,4 @@ func broadcastFifoHandler(peers map[int]rua.Peer, msg *rua.PeerMsg, _ *rua.FifoS
 	for _, p := range peers {
 		go p.Write(result)
 	}
-	return
 }

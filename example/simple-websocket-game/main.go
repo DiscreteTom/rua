@@ -26,7 +26,11 @@ func main() {
 	}
 
 	errChan := make(chan error)
-	s := rua.NewFifoServer().SetHandleKeyboardInterrupt(true)
+	s := rua.NewEventDrivenServer().
+		SetHandleKeyboardInterrupt(true).
+		On(rua.ReceivePeerMsg, func(peers map[int]rua.Peer, msg *rua.PeerMsg, s *rua.EventDrivenServer) {
+			statefulFifoHandler(peers, msg, s, game)
+		})
 
 	go func() {
 		errChan <- websocket.NewWebsocketListener(":8080", s).WithGuardian(func(_ http.ResponseWriter, _ *http.Request, gs rua.GameServer) bool {
@@ -36,9 +40,7 @@ func main() {
 
 	serverErrsChan := make(chan []error)
 	go func() {
-		serverErrsChan <- s.Start(func(peers map[int]rua.Peer, msg *rua.PeerMsg, s *rua.FifoServer) (errs []error) {
-			return statefulFifoHandler(peers, msg, s, game)
-		})
+		serverErrsChan <- s.Start()
 	}()
 
 	select {
@@ -52,7 +54,7 @@ func main() {
 	}
 }
 
-func statefulFifoHandler(peers map[int]rua.Peer, msg *rua.PeerMsg, _ *rua.FifoServer, state *Game) (errs []error) {
+func statefulFifoHandler(peers map[int]rua.Peer, msg *rua.PeerMsg, _ *rua.EventDrivenServer, state *Game) {
 	if state.PlayerHealth[msg.PeerId] == 0 {
 		// dead player can not attack
 		go peers[msg.PeerId].Write([]byte("You are dead and can not attack\n"))
@@ -71,5 +73,4 @@ func statefulFifoHandler(peers map[int]rua.Peer, msg *rua.PeerMsg, _ *rua.FifoSe
 			}
 		}
 	}
-	return
 }
