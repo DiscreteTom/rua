@@ -9,14 +9,19 @@ import (
 	"time"
 )
 
+type LockstepCommand struct {
+	Data []byte
+	Time time.Time
+}
+
 type LockstepServer struct {
 	peers                   map[int]model.Peer
 	stop                    chan bool
 	handleKeyboardInterrupt bool
-	rc                      chan *model.PeerMsg // receiver channel
-	commands                map[int][]byte      // commands from peers
-	currentStep             int                 // current step number, start from 0
-	stepLength              int                 // how many ms to wait after a step
+	rc                      chan *model.PeerMsg       // receiver channel
+	commands                map[int][]LockstepCommand // commands from peers
+	currentStep             int                       // current step number, start from 0
+	stepLength              int                       // how many ms to wait after a step
 	maxStepLength           int
 	minStepLength           int
 }
@@ -27,7 +32,7 @@ func NewLockStepServer() *LockstepServer {
 		stop:                    make(chan bool),
 		handleKeyboardInterrupt: false,
 		rc:                      make(chan *model.PeerMsg),
-		commands:                map[int][]byte{},
+		commands:                map[int][]LockstepCommand{},
 		currentStep:             0,
 		stepLength:              33,  // ~30 step/second
 		maxStepLength:           100, // ~10 step/second
@@ -101,7 +106,7 @@ func (s *LockstepServer) RemovePeer(peerId int) error {
 	}
 }
 
-func (s *LockstepServer) Start(stepHandler func(step int, peers map[int]model.Peer, commands map[int][]byte, s *LockstepServer) []error) (errs []error) {
+func (s *LockstepServer) Start(stepHandler func(step int, peers map[int]model.Peer, commands map[int][]LockstepCommand, s *LockstepServer) []error) (errs []error) {
 	errs = []error{}
 
 	timer := time.NewTimer(time.Duration(s.stepLength))
@@ -117,13 +122,16 @@ func (s *LockstepServer) Start(stepHandler func(step int, peers map[int]model.Pe
 		select {
 		case peerMsg := <-s.rc:
 			// accumulate commands
-			s.commands[peerMsg.PeerId] = append(s.commands[peerMsg.PeerId], peerMsg.Data...)
+			s.commands[peerMsg.PeerId] = append(s.commands[peerMsg.PeerId], LockstepCommand{Data: peerMsg.Data, Time: time.Now()})
 		case <-timer.C:
 			// handle step
-			stepHandler(s.currentStep, s.peers, s.commands, s)
+			errs := stepHandler(s.currentStep, s.peers, s.commands, s)
+			if len(errs) != 0 {
+				log.Println(errs)
+			}
 			s.currentStep++
 			// reset commands
-			s.commands = map[int][]byte{}
+			s.commands = map[int][]LockstepCommand{}
 			// reset timer
 			timer = time.NewTimer(time.Duration(s.stepLength) * time.Millisecond)
 		case <-kbc:
