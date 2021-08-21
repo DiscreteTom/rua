@@ -1,11 +1,12 @@
 package main
 
 import (
-	"DiscreteTom/rua"
-	"DiscreteTom/rua/plugin/network/websocket"
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/DiscreteTom/rua"
+	"github.com/DiscreteTom/rua/plugin/network/websocket"
 )
 
 const playerCount = 5

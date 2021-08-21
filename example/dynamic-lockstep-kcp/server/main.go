@@ -1,12 +1,13 @@
 package main
 
 import (
-	"DiscreteTom/rua"
-	"DiscreteTom/rua/plugin/network/kcp"
 	"crypto/sha1"
 	"encoding/binary"
 	"fmt"
 	"log"
+
+	"github.com/DiscreteTom/rua"
+	"github.com/DiscreteTom/rua/plugin/network/kcp"
 
 	"golang.org/x/crypto/pbkdf2"
 )

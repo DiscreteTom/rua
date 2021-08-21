@@ -1,9 +1,10 @@
 package websocket
 
 import (
-	"DiscreteTom/rua"
 	"log"
 	"net/http"
+
+	"github.com/DiscreteTom/rua"
 
 	"github.com/gorilla/websocket"
 )

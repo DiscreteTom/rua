@@ -1,10 +1,11 @@
 package main
 
 import (
-	"DiscreteTom/rua"
-	"DiscreteTom/rua/plugin/network/websocket"
 	"fmt"
 	"log"
+
+	"github.com/DiscreteTom/rua"
+	"github.com/DiscreteTom/rua/plugin/network/websocket"
 )
 
 func main() {

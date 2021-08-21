@@ -1,9 +1,10 @@
 package kcp
 
 import (
-	"DiscreteTom/rua"
 	"log"
 	"time"
+
+	"github.com/DiscreteTom/rua"
 
 	"github.com/xtaci/kcp-go/v5"
 )
