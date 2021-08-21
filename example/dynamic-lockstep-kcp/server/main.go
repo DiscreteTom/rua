@@ -53,7 +53,7 @@ func dynamicStepHandler(step int, peers map[int]rua.Peer, msgs []rua.PeerMsg, s 
 
 	// write a blank package to go to the next step
 	for _, p := range peers {
-		if err := p.Write([]byte("00000000")); err != nil {
+		if err := p.Write([]byte("0")); err != nil {
 			errs = append(errs, err)
 		}
 	}
