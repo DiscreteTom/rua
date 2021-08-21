@@ -71,6 +71,8 @@ func blockCrypt(crypt string, key []byte) (kcp.BlockCrypt, error) {
 		return kcp.NewSimpleXORBlockCrypt(key)
 	case "none":
 		return kcp.NewNoneBlockCrypt(key)
+	case "aes":
+		return kcp.NewAESBlockCrypt(key)
 	case "aes-128":
 		return kcp.NewAESBlockCrypt(key[:16])
 	case "aes-192":
