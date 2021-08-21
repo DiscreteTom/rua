@@ -33,12 +33,14 @@ func main() {
 	}
 }
 
-func broadcastStepHandler(step int, peers map[int]model.Peer, commands map[int][]byte, _ *lockstep.LockstepServer) (errs []error) {
+func broadcastStepHandler(step int, peers map[int]model.Peer, commands map[int][]lockstep.LockstepCommand, _ *lockstep.LockstepServer) (errs []error) {
 	// compact commands in one byte array
 	msg := []byte(fmt.Sprintf("step: %d\n", step))
-	for id, m := range commands {
+	for id, cmds := range commands {
 		msg = append(msg, []byte(fmt.Sprintf("from %d:\n", id))...)
-		msg = append(msg, m...)
+		for _, c := range cmds {
+			msg = append(msg, c.Data...)
+		}
 		msg = append(msg, '\n')
 	}
 	// broadcast to everyone
