@@ -45,6 +45,6 @@ func (p *kcpPeer) Start() {
 		}
 		p.c.SetReadDeadline(time.Now().Add(time.Duration(p.timeout) * time.Millisecond))
 
-		p.rc <- &model.PeerMsg{PeerId: p.id, Data: buf[:n]}
+		p.rc <- &model.PeerMsg{PeerId: p.id, Data: buf[:n], Time: time.Now()}
 	}
 }

@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"DiscreteTom/rua/pkg/model"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -34,6 +35,6 @@ func (p *websocketPeer) Start() {
 			break
 		}
 
-		p.rc <- &model.PeerMsg{PeerId: p.id, Data: msg}
+		p.rc <- &model.PeerMsg{PeerId: p.id, Data: msg, Time: time.Now()}
 	}
 }

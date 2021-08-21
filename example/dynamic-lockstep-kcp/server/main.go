@@ -38,21 +38,22 @@ func main() {
 	}
 }
 
-// Change step length according to the 1st peer's latency.
-func dynamicStepHandler(step int, peers map[int]model.Peer, commands map[int][]model.PeerCommand, s *lockstep.LockstepServer) (errs []error) {
+// Change step length according to the 1st msg's latency.
+func dynamicStepHandler(step int, peers map[int]model.Peer, msgs []model.PeerMsg, s *lockstep.LockstepServer) (errs []error) {
 	errs = []error{}
-	if p, ok := peers[0]; ok {
-		if len(commands[0]) != 0 && len(commands[0][0].Data) != 0 {
-			clientTime := int64(binary.LittleEndian.Uint64(commands[0][0].Data))
-			serverTime := commands[0][0].Time.UnixMilli()
-			rtt := int(serverTime-clientTime) * 2 // round trip time
 
-			fmt.Println("latency(ms):", serverTime-clientTime)
-			s.SetStepLength(rtt)
-			fmt.Println("new step length:", s.GetCurrentStepLength())
-		}
+	if len(msgs) != 0 && len(msgs[0].Data) != 0 {
+		clientTime := int64(binary.LittleEndian.Uint64(msgs[0].Data))
+		serverTime := msgs[0].Time.UnixMilli()
+		rtt := int(serverTime-clientTime) * 2 // round trip time
 
-		// write a blank package to go to the next step
+		fmt.Println("latency(ms):", serverTime-clientTime)
+		s.SetStepLength(rtt)
+		fmt.Println("new step length:", s.GetCurrentStepLength())
+	}
+
+	// write a blank package to go to the next step
+	for _, p := range peers {
 		if err := p.Write([]byte("00000000")); err != nil {
 			errs = append(errs, err)
 		}

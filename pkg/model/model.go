@@ -12,14 +12,10 @@ type Peer interface {
 type PeerMsg struct {
 	PeerId int
 	Data   []byte
+	Time   time.Time
 }
 
 type GameServer interface {
 	AddPeer(Peer)
 	RemovePeer(int) error
-}
-
-type PeerCommand struct {
-	Data []byte
-	Time time.Time
 }
