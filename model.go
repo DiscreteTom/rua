@@ -20,3 +20,14 @@ type GameServer interface {
 	RemovePeer(int) error
 	GetPeerCount() int
 }
+
+type GameServerLifeCycleEvent int
+
+const (
+	BeforeAddPeer GameServerLifeCycleEvent = iota
+	AfterAddPeer
+	BeforeRemovePeer
+	AfterRemovePeer
+	Step
+	ReceivePeerMsg
+)

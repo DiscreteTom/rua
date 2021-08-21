@@ -12,7 +12,9 @@ import (
 
 func main() {
 	errChan := make(chan error)
-	s := rua.NewLockStepServer().SetHandleKeyboardInterrupt(true)
+	s := rua.NewLockStepServer().
+		SetHandleKeyboardInterrupt(true).
+		On(rua.Step, dynamicStepHandler)
 
 	go func() {
 		errChan <- websocket.NewWebsocketListener(":8080", s).Start()
@@ -20,7 +22,7 @@ func main() {
 
 	serverErrsChan := make(chan []error)
 	go func() {
-		serverErrsChan <- s.Start(dynamicStepHandler)
+		serverErrsChan <- s.Start()
 	}()
 
 	select {
@@ -35,9 +37,7 @@ func main() {
 }
 
 // Change step length according to the 1st msg's latency.
-func dynamicStepHandler(step int, peers map[int]rua.Peer, msgs []rua.PeerMsg, s *rua.LockstepServer) (errs []error) {
-	errs = []error{}
-
+func dynamicStepHandler(step int, peers map[int]rua.Peer, msgs []rua.PeerMsg, s *rua.LockstepServer) {
 	if len(msgs) != 0 && len(msgs[0].Data) == 8 {
 		sendTime := int64(binary.LittleEndian.Uint64(msgs[0].Data))
 		recvTime := msgs[0].Time.UnixMilli()
@@ -54,8 +54,7 @@ func dynamicStepHandler(step int, peers map[int]rua.Peer, msgs []rua.PeerMsg, s 
 	binary.LittleEndian.PutUint64(buf, uint64(currentTime))
 	for _, p := range peers {
 		if err := p.Write(buf); err != nil {
-			errs = append(errs, err)
+			log.Println(err)
 		}
 	}
-	return
 }

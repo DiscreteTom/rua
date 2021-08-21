@@ -18,6 +18,12 @@ type LockstepServer struct {
 	stepLength              int           // how many ms to wait after a step
 	maxStepLength           int
 	minStepLength           int
+	onBeforeAddPeer         func(step int, newPeer Peer, peers map[int]Peer, s *LockstepServer)       // lifecycle hook
+	onAfterAddPeer          func(step int, newPeer Peer, peers map[int]Peer, s *LockstepServer)       // lifecycle hook
+	onBeforeRemovePeer      func(step int, targetId int, peers map[int]Peer, s *LockstepServer)       // lifecycle hook
+	onAfterRemovePeer       func(step int, targetId int, peers map[int]Peer, s *LockstepServer)       // lifecycle hook
+	onStep                  func(step int, peers map[int]Peer, peerMsgs []PeerMsg, s *LockstepServer) // lifecycle hook
+	onReceivePeerMsg        func(step int, peers map[int]Peer, m *PeerMsg, s *LockstepServer)         // lifecycle hook
 }
 
 func NewLockStepServer() *LockstepServer {
@@ -31,6 +37,12 @@ func NewLockStepServer() *LockstepServer {
 		stepLength:              33,  // ~30 step/second
 		maxStepLength:           100, // ~10 step/second
 		minStepLength:           8,   // ~120 step/second
+		onBeforeAddPeer:         func(step int, newPeer Peer, peers map[int]Peer, s *LockstepServer) {},
+		onAfterAddPeer:          func(step int, newPeer Peer, peers map[int]Peer, s *LockstepServer) {},
+		onBeforeRemovePeer:      func(step int, targetId int, peers map[int]Peer, s *LockstepServer) {},
+		onAfterRemovePeer:       func(step int, targetId int, peers map[int]Peer, s *LockstepServer) {},
+		onStep:                  func(step int, peers map[int]Peer, peerMsgs []PeerMsg, s *LockstepServer) {},
+		onReceivePeerMsg:        func(step int, peers map[int]Peer, m *PeerMsg, s *LockstepServer) {},
 	}
 }
 
@@ -76,6 +88,8 @@ func (s *LockstepServer) GetCurrentStepLength() int {
 
 // Activate a peer and manage its lifecycle.
 func (s *LockstepServer) AddPeer(p Peer) {
+	s.onBeforeAddPeer(s.currentStep, p, s.peers, s)
+
 	peerId := 0
 	for {
 		_, ok := s.peers[peerId]
@@ -87,24 +101,48 @@ func (s *LockstepServer) AddPeer(p Peer) {
 		peerId++
 	}
 	go p.Start()
+
+	s.onAfterAddPeer(s.currentStep, p, s.peers, s)
 }
 
 // Close the peer and untrack it.
-func (s *LockstepServer) RemovePeer(peerId int) error {
+func (s *LockstepServer) RemovePeer(peerId int) (err error) {
+	s.onBeforeRemovePeer(s.currentStep, peerId, s.peers, s)
+
 	if peer, ok := s.peers[peerId]; ok {
 		peer.Close()
 		delete(s.peers, peerId)
-		return nil
 	} else {
-		return errors.New("peer not exist")
+		err = errors.New("peer not exist")
 	}
+
+	s.onAfterRemovePeer(s.currentStep, peerId, s.peers, s)
+	return
 }
 
 func (s *LockstepServer) GetPeerCount() int {
 	return len(s.peers)
 }
 
-func (s *LockstepServer) Start(stepHandler func(step int, peers map[int]Peer, peerMsgs []PeerMsg, s *LockstepServer) []error) (errs []error) {
+func (s *LockstepServer) On(event GameServerLifeCycleEvent, f interface{}) *LockstepServer {
+	switch event {
+	case BeforeAddPeer:
+		s.onBeforeAddPeer = f.(func(step int, newPeer Peer, peers map[int]Peer, s *LockstepServer))
+	case AfterAddPeer:
+		s.onAfterAddPeer = f.(func(step int, newPeer Peer, peers map[int]Peer, s *LockstepServer))
+	case BeforeRemovePeer:
+		s.onBeforeRemovePeer = f.(func(step int, targetId int, peers map[int]Peer, s *LockstepServer))
+	case AfterRemovePeer:
+		s.onAfterRemovePeer = f.(func(step int, targetId int, peers map[int]Peer, s *LockstepServer))
+	case Step:
+		s.onStep = f.(func(step int, peers map[int]Peer, peerMsgs []PeerMsg, s *LockstepServer))
+	case ReceivePeerMsg:
+		s.onReceivePeerMsg = f.(func(step int, peers map[int]Peer, m *PeerMsg, s *LockstepServer))
+	}
+	return s
+}
+
+func (s *LockstepServer) Start() (errs []error) {
 	errs = []error{}
 
 	timer := time.NewTimer(time.Duration(s.stepLength))
@@ -121,12 +159,12 @@ func (s *LockstepServer) Start(stepHandler func(step int, peers map[int]Peer, pe
 		case peerMsg := <-s.rc:
 			// accumulate msgs
 			s.peerMsgs = append(s.peerMsgs, *peerMsg)
+			// handle lifecycle hook
+			s.onReceivePeerMsg(s.currentStep, s.peers, peerMsg, s)
 		case <-timer.C:
-			// handle step
-			errs := stepHandler(s.currentStep, s.peers, s.peerMsgs, s)
-			if len(errs) != 0 {
-				log.Println(errs)
-			}
+			// handle lifecycle hook
+			s.onStep(s.currentStep, s.peers, s.peerMsgs, s)
+
 			s.currentStep++
 			// reset msgs
 			s.peerMsgs = []PeerMsg{}

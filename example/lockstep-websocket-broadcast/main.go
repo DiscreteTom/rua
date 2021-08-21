@@ -10,7 +10,9 @@ import (
 
 func main() {
 	errChan := make(chan error)
-	s := rua.NewLockStepServer().SetHandleKeyboardInterrupt(true)
+	s := rua.NewLockStepServer().
+		SetHandleKeyboardInterrupt(true).
+		On(rua.Step, broadcastStepHandler)
 
 	go func() {
 		errChan <- websocket.NewWebsocketListener(":8080", s).Start()
@@ -18,7 +20,7 @@ func main() {
 
 	serverErrsChan := make(chan []error)
 	go func() {
-		serverErrsChan <- s.Start(broadcastStepHandler)
+		serverErrsChan <- s.Start()
 	}()
 
 	select {
@@ -32,7 +34,7 @@ func main() {
 	}
 }
 
-func broadcastStepHandler(step int, peers map[int]rua.Peer, msgs []rua.PeerMsg, _ *rua.LockstepServer) (errs []error) {
+func broadcastStepHandler(step int, peers map[int]rua.Peer, msgs []rua.PeerMsg, _ *rua.LockstepServer) {
 	// compact msgs in one byte array
 	result := []byte(fmt.Sprintf("step: %d\n", step))
 	for _, msg := range msgs {
@@ -44,5 +46,4 @@ func broadcastStepHandler(step int, peers map[int]rua.Peer, msgs []rua.PeerMsg, 
 	for _, p := range peers {
 		go p.Write(result)
 	}
-	return
 }
