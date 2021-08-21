@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/DiscreteTom/rua"
 	"github.com/DiscreteTom/rua/plugin/network/kcp"
@@ -41,19 +42,22 @@ func main() {
 func dynamicStepHandler(step int, peers map[int]rua.Peer, msgs []rua.PeerMsg, s *rua.LockstepServer) (errs []error) {
 	errs = []error{}
 
-	if len(msgs) != 0 && len(msgs[0].Data) != 0 {
-		clientTime := int64(binary.LittleEndian.Uint64(msgs[0].Data))
-		serverTime := msgs[0].Time.UnixMilli()
-		rtt := int(serverTime-clientTime) * 2 // round trip time
+	if len(msgs) != 0 && len(msgs[0].Data) == 8 {
+		sendTime := int64(binary.LittleEndian.Uint64(msgs[0].Data))
+		recvTime := msgs[0].Time.UnixMilli()
+		rtt := int(recvTime - sendTime) // round trip time
 
-		fmt.Println("latency(ms):", serverTime-clientTime)
+		fmt.Println("rtt(ms):", rtt)
 		s.SetStepLength(rtt)
 		fmt.Println("new step length:", s.GetCurrentStepLength())
 	}
 
-	// write a blank package to go to the next step
+	// broadcast current time
+	buf := make([]byte, 8)
+	currentTime := time.Now().UnixMilli()
+	binary.LittleEndian.PutUint64(buf, uint64(currentTime))
 	for _, p := range peers {
-		if err := p.Write([]byte("0")); err != nil {
+		if err := p.Write(buf); err != nil {
 			errs = append(errs, err)
 		}
 	}

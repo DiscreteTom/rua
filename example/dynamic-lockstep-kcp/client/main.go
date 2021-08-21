@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/sha1"
-	"encoding/binary"
 	"log"
 	"math/rand"
 	"time"
@@ -20,18 +19,21 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// write a byte to start
+	if _, err := sess.Write([]byte{0}); err != nil {
+		log.Fatal(err)
+	}
+
 	for {
-		// write current time
 		buf := make([]byte, 8)
-		currentTime := time.Now().UnixMilli()
-		binary.LittleEndian.PutUint64(buf, uint64(currentTime))
-		// but wait a random period (no longer than 100 ms) to simulate a latency
-		time.Sleep(time.Duration(rand.Int()%100) * time.Millisecond)
-		if _, err := sess.Write(buf); err != nil {
+		// get server's echo request
+		if _, err := sess.Read(buf); err != nil {
 			log.Fatal(err)
 		}
-		// wait for next step
-		if _, err := sess.Read(buf); err != nil {
+		// echo back
+		// you can wait for a random period to simulate a latency
+		time.Sleep(time.Duration(rand.Int()%100) * time.Millisecond)
+		if _, err := sess.Write(buf); err != nil {
 			log.Fatal(err)
 		}
 	}
