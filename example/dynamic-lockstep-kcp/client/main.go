@@ -23,9 +23,10 @@ func main() {
 	for {
 		// write current time
 		buf := make([]byte, 8)
-		binary.LittleEndian.PutUint64(buf, uint64(time.Now().UnixMilli()))
-		// but wait a random period (no longer than 1 second) to simulate a latency
-		time.Sleep(time.Duration(rand.Int()%1000) * time.Millisecond)
+		currentTime := time.Now().UnixMilli()
+		binary.LittleEndian.PutUint64(buf, uint64(currentTime))
+		// but wait a random period (no longer than 100 ms) to simulate a latency
+		time.Sleep(time.Duration(rand.Int()%100) * time.Millisecond)
 		if _, err := sess.Write(buf); err != nil {
 			log.Fatal(err)
 		}

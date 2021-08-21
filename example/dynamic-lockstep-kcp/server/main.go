@@ -6,8 +6,8 @@ import (
 	"DiscreteTom/rua/plugin/network/kcp"
 	"crypto/sha1"
 	"encoding/binary"
+	"fmt"
 	"log"
-	"time"
 
 	"golang.org/x/crypto/pbkdf2"
 )
@@ -39,20 +39,21 @@ func main() {
 }
 
 // Change step length according to the 1st peer's latency.
-func dynamicStepHandler(step int, peers map[int]model.Peer, commands map[int][]byte, s *lockstep.LockstepServer) (errs []error) {
+func dynamicStepHandler(step int, peers map[int]model.Peer, commands map[int][]lockstep.LockstepCommand, s *lockstep.LockstepServer) (errs []error) {
 	errs = []error{}
 	if p, ok := peers[0]; ok {
-		if len(commands[0]) != 0 {
-			clientTime := int64(binary.LittleEndian.Uint64(commands[0]))
-			serverTime := time.Now().UnixMilli()
-			newStepLength := int(serverTime-clientTime) * 2
+		if len(commands[0]) != 0 && len(commands[0][0].Data) != 0 {
+			clientTime := int64(binary.LittleEndian.Uint64(commands[0][0].Data))
+			serverTime := commands[0][0].Time.UnixMilli()
+			rtt := int(serverTime-clientTime) * 2 // round trip time
 
-			log.Println("step:", step, "now:", serverTime, "latency(ms):", serverTime-clientTime, "newStepLength:", newStepLength)
-			s.SetStepLength(newStepLength)
+			fmt.Println("latency(ms):", serverTime-clientTime)
+			s.SetStepLength(rtt)
+			fmt.Println("new step length:", s.GetCurrentStepLength())
 		}
 
 		// write a blank package to go to the next step
-		if err := p.Write([]byte("0")); err != nil {
+		if err := p.Write([]byte("00000000")); err != nil {
 			errs = append(errs, err)
 		}
 	}
