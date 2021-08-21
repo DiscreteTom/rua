@@ -16,9 +16,8 @@ func main() {
 	s := rua.NewLockStepServer().SetHandleKeyboardInterrupt(true)
 
 	key := pbkdf2.Key([]byte("demo pass"), []byte("demo salt"), 1024, 32, sha1.New)
-	k := kcp.NewKcpListener(":8081", s, key, 4096)
 	go func() {
-		errChan <- k.Start()
+		errChan <- kcp.NewKcpListener(":8081", s, key, 4096).Start()
 	}()
 
 	serverErrsChan := make(chan []error)

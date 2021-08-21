@@ -11,9 +11,8 @@ func main() {
 	errChan := make(chan error)
 	s := rua.NewFifoServer().SetHandleKeyboardInterrupt(true)
 
-	ws := websocket.NewWebsocketListener(":8080", s)
 	go func() {
-		errChan <- ws.Start()
+		errChan <- websocket.NewWebsocketListener(":8080", s).Start()
 	}()
 
 	serverErrsChan := make(chan []error)
