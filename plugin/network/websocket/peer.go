@@ -16,10 +16,17 @@ type websocketPeer struct {
 	closed bool
 }
 
+func NewWebsocketPeer(c *websocket.Conn, gs rua.GameServer) *websocketPeer {
+	return &websocketPeer{
+		c:      c,
+		gs:     gs,
+		lock:   sync.Mutex{},
+		closed: false,
+	}
+}
+
 func (p *websocketPeer) Activate(id int) {
 	p.id = id
-	p.lock = sync.Mutex{}
-	p.closed = false
 }
 
 // Thread safe.

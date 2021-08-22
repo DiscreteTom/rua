@@ -48,6 +48,5 @@ func handler(w http.ResponseWriter, r *http.Request, gs rua.GameServer) {
 		return
 	}
 
-	p := &websocketPeer{c: c, gs: gs}
-	gs.AddPeer(p)
+	gs.AddPeer(NewWebsocketPeer(c, gs))
 }
