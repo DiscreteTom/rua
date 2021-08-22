@@ -2,6 +2,8 @@
 
 一个简单的、高度可定制化的游戏服务器框架
 
+![architecture](./img/architecture.png)
+
 ## 特性
 
 - 帧同步(lockstep)服务器
@@ -10,6 +12,7 @@
 - 支持使用自定义网络通信协议
   - 目前已经提供了websocket、kcp两种协议的插件
 - 生命周期钩子
+- 级联架构
 
 ## 安装
 
@@ -47,5 +50,11 @@ func main() {
 
 ## [更多示例](https://github.com/DiscreteTom/rua/tree/main/example)
 
+## TODO
 
+- [ ] 流数据输入/输出（用来进行异步外挂检测）
+  - [ ] Kafka
+- [ ] 持久化（用来实现大数据分析、战斗回放等）
+  - [ ] 日志文件
+  - [ ] 数据库
 
