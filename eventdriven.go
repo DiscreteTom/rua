@@ -78,7 +78,7 @@ func (s *EventDrivenServer) GetPeerCount() int {
 }
 
 // register lifecycle hook
-func (s *EventDrivenServer) OnBeforeAddPeer(f func(newPeer Peer, peers map[int]Peer, s *EventDrivenServer)) *EventDrivenServer {
+func (s *EventDrivenServer) BeforeAddPeer(f func(newPeer Peer, peers map[int]Peer, s *EventDrivenServer)) *EventDrivenServer {
 	s.beforeAddPeerHandler = f
 	return s
 }
