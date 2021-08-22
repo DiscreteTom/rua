@@ -88,18 +88,21 @@ func (s *LockstepServer) GetCurrentStepLength() int {
 
 // Activate a peer, allocate a peerId and manage the peer's lifecycle.
 func (s *LockstepServer) AddPeer(p Peer) {
-	s.beforeAddPeerHandler(s.currentStep, p, s.peers, s)
-
+	// allocate a peerId
 	peerId := 0
 	for {
 		_, ok := s.peers[peerId]
 		if !ok {
-			p.Activate(peerId)
-			s.peers[peerId] = p
 			break
 		}
 		peerId++
 	}
+
+	p.Activate(peerId)
+	s.beforeAddPeerHandler(s.currentStep, p, s.peers, s)
+
+	// add the peer and start the peer
+	s.peers[peerId] = p
 	go p.Start()
 
 	s.afterAddPeerHandler(s.currentStep, p, s.peers, s)
@@ -124,43 +127,46 @@ func (s *LockstepServer) GetPeerCount() int {
 	return len(s.peers)
 }
 
-// register lifecycle hook
+// Register lifecycle hook.
+// At this time the new peer's id has been allocated, but `peers` not contains the new peer.
 func (s *LockstepServer) BeforeAddPeer(f func(step int, newPeer Peer, peers map[int]Peer, s *LockstepServer)) *LockstepServer {
 	s.beforeAddPeerHandler = f
 	return s
 }
 
-// register lifecycle hook
+// Register lifecycle hook.
+// At this time the new peer's id has been allocated, and `peers` contains the new peer.
 func (s *LockstepServer) AfterAddPeer(f func(step int, newPeer Peer, peers map[int]Peer, s *LockstepServer)) *LockstepServer {
 	s.afterAddPeerHandler = f
 	return s
 }
 
-// register lifecycle hook
+// Register lifecycle hook.
 func (s *LockstepServer) BeforeRemovePeer(f func(step int, targetId int, peers map[int]Peer, s *LockstepServer)) *LockstepServer {
 	s.beforeRemovePeerHandler = f
 	return s
 }
 
-// register lifecycle hook
+// Register lifecycle hook/
 func (s *LockstepServer) AfterRemovePeer(f func(step int, targetId int, peers map[int]Peer, s *LockstepServer)) *LockstepServer {
 	s.afterRemovePeerHandler = f
 	return s
 }
 
-// register lifecycle hook
+// Register lifecycle hook.
+// You can modify or enrich the peer message before process it.
 func (s *LockstepServer) BeforeProcPeerMsg(f func(step int, peers map[int]Peer, m *PeerMsg, s *LockstepServer)) *LockstepServer {
 	s.beforeProcPeerMsgHandler = f
 	return s
 }
 
-// register lifecycle hook
+// Register lifecycle hook.
 func (s *LockstepServer) OnPeerMsg(f func(step int, peers map[int]Peer, m *PeerMsg, s *LockstepServer)) *LockstepServer {
 	s.onPeerMsgHandler = f
 	return s
 }
 
-// register lifecycle hook
+// Register lifecycle hook.
 func (s *LockstepServer) OnStep(f func(step int, peers map[int]Peer, peerMsgs []PeerMsg, s *LockstepServer)) *LockstepServer {
 	s.onStepHandler = f
 	return s
