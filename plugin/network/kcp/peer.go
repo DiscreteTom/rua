@@ -2,6 +2,7 @@ package kcp
 
 import (
 	"log"
+	"sync"
 	"time"
 
 	"github.com/DiscreteTom/rua"
@@ -15,18 +16,27 @@ type kcpPeer struct {
 	gs      rua.GameServer
 	bufSize int
 	timeout int
+	lock    sync.Mutex
+	closed  bool
 }
 
 func (p *kcpPeer) Activate(id int) {
 	p.id = id
+	p.lock = sync.Mutex{}
+	p.closed = false
 }
 
 func (p *kcpPeer) Write(data []byte) error {
+	// prevent concurrent write
+	p.lock.Lock()
+	defer p.lock.Unlock()
+
 	_, err := p.c.Write(data)
 	return err
 }
 
 func (p *kcpPeer) Close() error {
+	p.closed = true
 	return p.c.Close() // close kcp conn
 }
 
