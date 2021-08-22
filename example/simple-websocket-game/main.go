@@ -28,7 +28,7 @@ func main() {
 	errChan := make(chan error)
 	s := rua.NewEventDrivenServer().
 		SetHandleKeyboardInterrupt(true).
-		On(rua.ReceivePeerMsg, func(peers map[int]rua.Peer, msg *rua.PeerMsg, s *rua.EventDrivenServer) {
+		On(rua.AppendPeerMsg, func(peers map[int]rua.Peer, msg *rua.PeerMsg, s *rua.EventDrivenServer) {
 			statefulFifoHandler(peers, msg, s, game)
 		})
 

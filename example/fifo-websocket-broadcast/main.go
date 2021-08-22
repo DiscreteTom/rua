@@ -12,7 +12,7 @@ func main() {
 	errChan := make(chan error)
 	s := rua.NewEventDrivenServer().
 		SetHandleKeyboardInterrupt(true).
-		On(rua.ReceivePeerMsg, broadcastFifoHandler)
+		On(rua.AppendPeerMsg, broadcastFifoHandler)
 
 	go func() {
 		errChan <- websocket.NewWebsocketListener(":8080", s).Start()

@@ -30,5 +30,6 @@ const (
 	BeforeRemovePeer
 	AfterRemovePeer
 	Step
-	ReceivePeerMsg
+	BeforeAppendPeerMsg
+	AppendPeerMsg
 )

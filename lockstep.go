@@ -22,7 +22,8 @@ type LockstepServer struct {
 	onBeforeRemovePeer      func(step int, targetId int, peers map[int]Peer, s *LockstepServer)       // lifecycle hook
 	onAfterRemovePeer       func(step int, targetId int, peers map[int]Peer, s *LockstepServer)       // lifecycle hook
 	onStep                  func(step int, peers map[int]Peer, peerMsgs []PeerMsg, s *LockstepServer) // lifecycle hook
-	onReceivePeerMsg        func(step int, peers map[int]Peer, m *PeerMsg, s *LockstepServer)         // lifecycle hook
+	onBeforeAppendPeerMsg   func(step int, peers map[int]Peer, m *PeerMsg, s *LockstepServer)         // lifecycle hook
+	onAppendPeerMsg         func(step int, peers map[int]Peer, m *PeerMsg, s *LockstepServer)         // lifecycle hook
 }
 
 func NewLockStepServer() *LockstepServer {
@@ -40,7 +41,8 @@ func NewLockStepServer() *LockstepServer {
 		onBeforeRemovePeer:      func(step int, targetId int, peers map[int]Peer, s *LockstepServer) {},
 		onAfterRemovePeer:       func(step int, targetId int, peers map[int]Peer, s *LockstepServer) {},
 		onStep:                  func(step int, peers map[int]Peer, peerMsgs []PeerMsg, s *LockstepServer) {},
-		onReceivePeerMsg:        func(step int, peers map[int]Peer, m *PeerMsg, s *LockstepServer) {},
+		onBeforeAppendPeerMsg:   func(step int, peers map[int]Peer, m *PeerMsg, s *LockstepServer) {},
+		onAppendPeerMsg:         func(step int, peers map[int]Peer, m *PeerMsg, s *LockstepServer) {},
 	}
 }
 
@@ -122,6 +124,7 @@ func (s *LockstepServer) GetPeerCount() int {
 	return len(s.peers)
 }
 
+// register lifecycle hooks
 func (s *LockstepServer) On(event GameServerLifeCycleEvent, f interface{}) *LockstepServer {
 	switch event {
 	case BeforeAddPeer:
@@ -134,8 +137,10 @@ func (s *LockstepServer) On(event GameServerLifeCycleEvent, f interface{}) *Lock
 		s.onAfterRemovePeer = f.(func(step int, targetId int, peers map[int]Peer, s *LockstepServer))
 	case Step:
 		s.onStep = f.(func(step int, peers map[int]Peer, peerMsgs []PeerMsg, s *LockstepServer))
-	case ReceivePeerMsg:
-		s.onReceivePeerMsg = f.(func(step int, peers map[int]Peer, m *PeerMsg, s *LockstepServer))
+	case BeforeAppendPeerMsg:
+		s.onBeforeAppendPeerMsg = f.(func(step int, peers map[int]Peer, m *PeerMsg, s *LockstepServer))
+	case AppendPeerMsg:
+		s.onAppendPeerMsg = f.(func(step int, peers map[int]Peer, m *PeerMsg, s *LockstepServer))
 	}
 	return s
 }
@@ -188,7 +193,13 @@ func (s *LockstepServer) Stop() {
 
 func (s *LockstepServer) AppendPeerMsg(peerId int, d []byte) {
 	peerMsg := PeerMsg{PeerId: peerId, Data: d, Time: time.Now()}
-	s.peerMsgs = append(s.peerMsgs, peerMsg)
+
 	// handle lifecycle hook
-	s.onReceivePeerMsg(s.currentStep, s.peers, &peerMsg, s)
+	// this hook can modify peerMsg before append
+	s.onBeforeAppendPeerMsg(s.currentStep, s.peers, &peerMsg, s)
+
+	s.peerMsgs = append(s.peerMsgs, peerMsg)
+
+	// handle lifecycle hook
+	s.onAppendPeerMsg(s.currentStep, s.peers, &peerMsg, s)
 }
