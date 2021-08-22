@@ -22,6 +22,7 @@ func (p *websocketPeer) Activate(id int) {
 	p.closed = false
 }
 
+// Thread safe.
 func (p *websocketPeer) Write(data []byte) error {
 	// prevent concurrent write
 	p.lock.Lock()
@@ -31,6 +32,10 @@ func (p *websocketPeer) Write(data []byte) error {
 }
 
 func (p *websocketPeer) Close() error {
+	// wait for write finished
+	p.lock.Lock()
+	defer p.lock.Unlock()
+
 	p.closed = true
 	return p.c.Close() // close websocket conn
 }
@@ -42,9 +47,11 @@ func (p *websocketPeer) GetId() int {
 func (p *websocketPeer) Start() {
 	for {
 		_, msg, err := p.c.ReadMessage()
-		if err != nil && !p.closed {
-			// not closed by Close(), we should remove the peer
-			p.gs.RemovePeer(p.id)
+		if err != nil {
+			if !p.closed {
+				// not closed by Close(), we should remove the peer
+				p.gs.RemovePeer(p.id)
+			}
 			break
 		}
 

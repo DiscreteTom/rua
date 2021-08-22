@@ -26,6 +26,7 @@ func (p *kcpPeer) Activate(id int) {
 	p.closed = false
 }
 
+// Thread safe.
 func (p *kcpPeer) Write(data []byte) error {
 	// prevent concurrent write
 	p.lock.Lock()
@@ -36,6 +37,10 @@ func (p *kcpPeer) Write(data []byte) error {
 }
 
 func (p *kcpPeer) Close() error {
+	// wait after write finished
+	p.lock.Lock()
+	defer p.lock.Unlock()
+
 	p.closed = true
 	return p.c.Close() // close kcp conn
 }
@@ -50,6 +55,10 @@ func (p *kcpPeer) Start() {
 		buf := make([]byte, p.bufSize)
 		n, err := p.c.Read(buf)
 		if err != nil {
+			if p.closed {
+				// closed by peer.Close(), not need to remove peer from server
+				break
+			}
 			if err.Error() == "timeout" {
 				log.Printf("peer[%d] timeout\n", p.id)
 			}
