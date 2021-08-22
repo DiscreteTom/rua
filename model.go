@@ -21,4 +21,6 @@ type GameServer interface {
 	RemovePeer(peerId int) error
 	GetPeerCount() int
 	AppendPeerMsg(peerId int, d []byte)
+	Start() []error
+	Stop()
 }
