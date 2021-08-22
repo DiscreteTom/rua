@@ -5,13 +5,13 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"time"
 )
 
 type EventDrivenServer struct {
-	peers                   map[int]Peer
 	stop                    chan bool
 	handleKeyboardInterrupt bool
-	rc                      chan *PeerMsg                                                // receiver channel
+	peers                   map[int]Peer                                                 // peer id starts from 0
 	onBeforeAddPeer         func(newPeer Peer, peers map[int]Peer, s *EventDrivenServer) // lifecycle hook
 	onAfterAddPeer          func(newPeer Peer, peers map[int]Peer, s *EventDrivenServer) // lifecycle hook
 	onBeforeRemovePeer      func(targetId int, peers map[int]Peer, s *EventDrivenServer) // lifecycle hook
@@ -21,10 +21,9 @@ type EventDrivenServer struct {
 
 func NewEventDrivenServer() *EventDrivenServer {
 	return &EventDrivenServer{
-		peers:                   map[int]Peer{},
 		stop:                    make(chan bool),
 		handleKeyboardInterrupt: false,
-		rc:                      make(chan *PeerMsg),
+		peers:                   map[int]Peer{},
 		onBeforeAddPeer:         func(newPeer Peer, peers map[int]Peer, s *EventDrivenServer) {},
 		onAfterAddPeer:          func(newPeer Peer, peers map[int]Peer, s *EventDrivenServer) {},
 		onBeforeRemovePeer:      func(targetId int, peers map[int]Peer, s *EventDrivenServer) {},
@@ -46,7 +45,7 @@ func (s *EventDrivenServer) AddPeer(p Peer) {
 	for {
 		_, ok := s.peers[peerId]
 		if !ok {
-			p.Activate(s.rc, peerId)
+			p.Activate(peerId)
 			s.peers[peerId] = p
 			break
 		}
@@ -104,8 +103,6 @@ func (s *EventDrivenServer) Start() (errs []error) {
 	loop := true
 	for loop {
 		select {
-		case peerMsg := <-s.rc:
-			s.onReceivePeerMsg(s.peers, peerMsg, s)
 		case <-kbc:
 			if s.handleKeyboardInterrupt {
 				loop = false
@@ -127,4 +124,10 @@ func (s *EventDrivenServer) Start() (errs []error) {
 
 func (s *EventDrivenServer) Stop() {
 	s.stop <- true
+}
+
+func (s *EventDrivenServer) AppendPeerMsg(peerId int, d []byte) {
+	peerMsg := PeerMsg{PeerId: peerId, Data: d, Time: time.Now()}
+	// handle lifecycle hook
+	s.onReceivePeerMsg(s.peers, &peerMsg, s)
 }

@@ -3,7 +3,7 @@ package rua
 import "time"
 
 type Peer interface {
-	Activate(chan *PeerMsg, int)
+	Activate(peerId int)
 	Write([]byte) error
 	Close() error
 	Start()
@@ -17,8 +17,9 @@ type PeerMsg struct {
 
 type GameServer interface {
 	AddPeer(Peer)
-	RemovePeer(int) error
+	RemovePeer(peerId int) error
 	GetPeerCount() int
+	AppendPeerMsg(peerId int, d []byte)
 }
 
 type GameServerLifeCycleEvent int

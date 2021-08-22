@@ -1,22 +1,18 @@
 package websocket
 
 import (
-	"time"
-
 	"github.com/DiscreteTom/rua"
 
 	"github.com/gorilla/websocket"
 )
 
 type websocketPeer struct {
-	rc chan *rua.PeerMsg // receiver channel
-	id int               // peer id
+	id int // peer id
 	c  *websocket.Conn
 	gs rua.GameServer
 }
 
-func (p *websocketPeer) Activate(rc chan *rua.PeerMsg, id int) {
-	p.rc = rc
+func (p *websocketPeer) Activate(id int) {
 	p.id = id
 }
 
@@ -36,6 +32,6 @@ func (p *websocketPeer) Start() {
 			break
 		}
 
-		p.rc <- &rua.PeerMsg{PeerId: p.id, Data: msg, Time: time.Now()}
+		p.gs.AppendPeerMsg(p.id, msg)
 	}
 }

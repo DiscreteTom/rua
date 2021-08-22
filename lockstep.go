@@ -9,13 +9,12 @@ import (
 )
 
 type LockstepServer struct {
-	peers                   map[int]Peer
 	stop                    chan bool
 	handleKeyboardInterrupt bool
-	rc                      chan *PeerMsg // receiver channel
-	peerMsgs                []PeerMsg     // msgs from peers
-	currentStep             int           // current step number, start from 0
-	stepLength              int           // how many ms to wait after a step
+	peers                   map[int]Peer // peer id starts from 0
+	peerMsgs                []PeerMsg    // msgs from peers
+	currentStep             int          // current step number, start from 0
+	stepLength              int          // how many ms to wait after a step
 	maxStepLength           int
 	minStepLength           int
 	onBeforeAddPeer         func(step int, newPeer Peer, peers map[int]Peer, s *LockstepServer)       // lifecycle hook
@@ -28,10 +27,9 @@ type LockstepServer struct {
 
 func NewLockStepServer() *LockstepServer {
 	return &LockstepServer{
-		peers:                   map[int]Peer{},
 		stop:                    make(chan bool),
 		handleKeyboardInterrupt: false,
-		rc:                      make(chan *PeerMsg),
+		peers:                   map[int]Peer{},
 		peerMsgs:                []PeerMsg{},
 		currentStep:             0,
 		stepLength:              33,  // ~30 step/second
@@ -86,7 +84,7 @@ func (s *LockstepServer) GetCurrentStepLength() int {
 	return s.stepLength
 }
 
-// Activate a peer and manage its lifecycle.
+// Activate a peer, allocate a peerId and manage the peer's lifecycle.
 func (s *LockstepServer) AddPeer(p Peer) {
 	s.onBeforeAddPeer(s.currentStep, p, s.peers, s)
 
@@ -94,7 +92,7 @@ func (s *LockstepServer) AddPeer(p Peer) {
 	for {
 		_, ok := s.peers[peerId]
 		if !ok {
-			p.Activate(s.rc, peerId)
+			p.Activate(peerId)
 			s.peers[peerId] = p
 			break
 		}
@@ -156,11 +154,6 @@ func (s *LockstepServer) Start() (errs []error) {
 	loop := true
 	for loop {
 		select {
-		case peerMsg := <-s.rc:
-			// accumulate msgs
-			s.peerMsgs = append(s.peerMsgs, *peerMsg)
-			// handle lifecycle hook
-			s.onReceivePeerMsg(s.currentStep, s.peers, peerMsg, s)
 		case <-timer.C:
 			// handle lifecycle hook
 			s.onStep(s.currentStep, s.peers, s.peerMsgs, s)
@@ -191,4 +184,11 @@ func (s *LockstepServer) Start() (errs []error) {
 
 func (s *LockstepServer) Stop() {
 	s.stop <- true
+}
+
+func (s *LockstepServer) AppendPeerMsg(peerId int, d []byte) {
+	peerMsg := PeerMsg{PeerId: peerId, Data: d, Time: time.Now()}
+	s.peerMsgs = append(s.peerMsgs, peerMsg)
+	// handle lifecycle hook
+	s.onReceivePeerMsg(s.currentStep, s.peers, &peerMsg, s)
 }
