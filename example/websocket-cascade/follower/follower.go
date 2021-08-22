@@ -5,10 +5,9 @@ import (
 
 	"github.com/DiscreteTom/rua"
 	"github.com/DiscreteTom/rua/plugin/network/websocket"
-	ws "github.com/gorilla/websocket"
 )
 
-const leaderAddr = "ws://localhost:8080"
+const leaderAddr = "localhost:8080"
 
 func main() {
 	s := rua.NewEventDrivenServer().
@@ -19,11 +18,9 @@ func main() {
 		})
 
 	// connect to the leader
-	c, _, err := ws.DefaultDialer.Dial(leaderAddr, nil)
-	if err != nil {
+	if err := websocket.NewWebsocketCascadeFollower(leaderAddr, s).Connect(); err != nil {
 		log.Fatal(err)
 	}
-	s.AddPeer(websocket.NewWebsocketPeer(c, s))
 
 	s.Start()
 }
