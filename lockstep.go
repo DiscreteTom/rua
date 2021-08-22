@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"sync"
 	"time"
 )
 
@@ -12,7 +13,9 @@ type LockstepServer struct {
 	stop                     chan bool
 	handleKeyboardInterrupt  bool
 	peers                    map[int]Peer // peer id starts from 0
+	peerLock                 sync.Mutex   // prevent concurrent access
 	peerMsgs                 []PeerMsg    // msgs from peers
+	peerMsgsLock             sync.Mutex   // prevent concurrent access
 	currentStep              int          // current step number, start from 0
 	stepLength               int          // how many ms to wait after a step
 	maxStepLength            int
@@ -31,7 +34,9 @@ func NewLockStepServer() *LockstepServer {
 		stop:                     make(chan bool),
 		handleKeyboardInterrupt:  false,
 		peers:                    map[int]Peer{},
+		peerLock:                 sync.Mutex{},
 		peerMsgs:                 []PeerMsg{},
+		peerMsgsLock:             sync.Mutex{},
 		currentStep:              0,
 		stepLength:               33,  // ~30 step/second
 		maxStepLength:            100, // ~10 step/second
@@ -88,6 +93,8 @@ func (s *LockstepServer) GetCurrentStepLength() int {
 
 // Activate a peer, allocate a peerId and manage the peer's lifecycle.
 func (s *LockstepServer) AddPeer(p Peer) {
+	s.peerLock.Lock()
+
 	// allocate a peerId
 	peerId := 0
 	for {
@@ -100,9 +107,9 @@ func (s *LockstepServer) AddPeer(p Peer) {
 
 	p.Activate(peerId)
 	s.beforeAddPeerHandler(s.currentStep, p, s.peers, s)
-
-	// add the peer and start the peer
 	s.peers[peerId] = p
+
+	s.peerLock.Unlock()
 	go p.Start()
 
 	s.afterAddPeerHandler(s.currentStep, p, s.peers, s)
@@ -112,12 +119,14 @@ func (s *LockstepServer) AddPeer(p Peer) {
 func (s *LockstepServer) RemovePeer(peerId int) (err error) {
 	s.beforeRemovePeerHandler(s.currentStep, peerId, s.peers, s)
 
+	s.peerLock.Lock()
 	if peer, ok := s.peers[peerId]; ok {
 		peer.Close()
 		delete(s.peers, peerId)
 	} else {
 		err = errors.New("peer not exist")
 	}
+	s.peerLock.Unlock()
 
 	s.afterRemovePeerHandler(s.currentStep, peerId, s.peers, s)
 	return
@@ -129,6 +138,7 @@ func (s *LockstepServer) GetPeerCount() int {
 
 // Register lifecycle hook.
 // At this time the new peer's id has been allocated, but `peers` not contains the new peer.
+// This hook won't be triggered concurrently.
 func (s *LockstepServer) BeforeAddPeer(f func(step int, newPeer Peer, peers map[int]Peer, s *LockstepServer)) *LockstepServer {
 	s.beforeAddPeerHandler = f
 	return s
@@ -136,18 +146,25 @@ func (s *LockstepServer) BeforeAddPeer(f func(step int, newPeer Peer, peers map[
 
 // Register lifecycle hook.
 // At this time the new peer's id has been allocated, and `peers` contains the new peer.
+// This hook may be triggered concurrently.
 func (s *LockstepServer) AfterAddPeer(f func(step int, newPeer Peer, peers map[int]Peer, s *LockstepServer)) *LockstepServer {
 	s.afterAddPeerHandler = f
 	return s
 }
 
 // Register lifecycle hook.
+// The target peer may has been closed.
+// The target peer may not exist.
+// This hook may be triggered concurrently.
 func (s *LockstepServer) BeforeRemovePeer(f func(step int, targetId int, peers map[int]Peer, s *LockstepServer)) *LockstepServer {
 	s.beforeRemovePeerHandler = f
 	return s
 }
 
-// Register lifecycle hook/
+// Register lifecycle hook.
+// The target peer may not exist.
+// If it exists, it must been closed, and been removed from `peers`.
+// This hook may be triggered concurrently.
 func (s *LockstepServer) AfterRemovePeer(f func(step int, targetId int, peers map[int]Peer, s *LockstepServer)) *LockstepServer {
 	s.afterRemovePeerHandler = f
 	return s
@@ -155,23 +172,27 @@ func (s *LockstepServer) AfterRemovePeer(f func(step int, targetId int, peers ma
 
 // Register lifecycle hook.
 // You can modify or enrich the peer message before process it.
+// This hook may be triggered concurrently.
 func (s *LockstepServer) BeforeProcPeerMsg(f func(step int, peers map[int]Peer, m *PeerMsg, s *LockstepServer)) *LockstepServer {
 	s.beforeProcPeerMsgHandler = f
 	return s
 }
 
 // Register lifecycle hook.
+// This hook may be triggered concurrently.
 func (s *LockstepServer) OnPeerMsg(f func(step int, peers map[int]Peer, m *PeerMsg, s *LockstepServer)) *LockstepServer {
 	s.onPeerMsgHandler = f
 	return s
 }
 
 // Register lifecycle hook.
+// This hook may be triggered concurrently.
 func (s *LockstepServer) OnStep(f func(step int, peers map[int]Peer, peerMsgs []PeerMsg, s *LockstepServer)) *LockstepServer {
 	s.onStepHandler = f
 	return s
 }
 
+// Return errors from peer.Close() when stop the server.
 func (s *LockstepServer) Start() (errs []error) {
 	errs = []error{}
 
@@ -225,7 +246,9 @@ func (s *LockstepServer) AppendPeerMsg(peerId int, d []byte) {
 	// this hook can modify peerMsg before append
 	s.beforeProcPeerMsgHandler(s.currentStep, s.peers, &peerMsg, s)
 
+	s.peerMsgsLock.Lock()
 	s.peerMsgs = append(s.peerMsgs, peerMsg)
+	s.peerMsgsLock.Unlock()
 
 	// handle lifecycle hook
 	s.onPeerMsgHandler(s.currentStep, s.peers, &peerMsg, s)

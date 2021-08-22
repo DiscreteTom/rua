@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"sync"
 	"time"
 )
 
@@ -12,6 +13,7 @@ type EventDrivenServer struct {
 	stop                     chan bool
 	handleKeyboardInterrupt  bool
 	peers                    map[int]Peer                                                 // peer id starts from 0
+	peerLock                 sync.Mutex                                                   // prevent concurrent access
 	beforeAddPeerHandler     func(newPeer Peer, peers map[int]Peer, s *EventDrivenServer) // lifecycle hook
 	afterAddPeerHandler      func(newPeer Peer, peers map[int]Peer, s *EventDrivenServer) // lifecycle hook
 	beforeRemovePeerHandler  func(targetId int, peers map[int]Peer, s *EventDrivenServer) // lifecycle hook
@@ -25,6 +27,7 @@ func NewEventDrivenServer() *EventDrivenServer {
 		stop:                     make(chan bool),
 		handleKeyboardInterrupt:  false,
 		peers:                    map[int]Peer{},
+		peerLock:                 sync.Mutex{},
 		beforeAddPeerHandler:     func(newPeer Peer, peers map[int]Peer, s *EventDrivenServer) {},
 		afterAddPeerHandler:      func(newPeer Peer, peers map[int]Peer, s *EventDrivenServer) {},
 		beforeRemovePeerHandler:  func(targetId int, peers map[int]Peer, s *EventDrivenServer) {},
@@ -41,6 +44,8 @@ func (s *EventDrivenServer) SetHandleKeyboardInterrupt(enable bool) *EventDriven
 
 // Activate a peer, allocate a peerId and manage the peer's lifecycle.
 func (s *EventDrivenServer) AddPeer(p Peer) {
+	s.peerLock.Lock()
+
 	// allocate a peerId
 	peerId := 0
 	for {
@@ -53,9 +58,9 @@ func (s *EventDrivenServer) AddPeer(p Peer) {
 
 	p.Activate(peerId)
 	s.beforeAddPeerHandler(p, s.peers, s)
-
-	// add the peer and start the peer
 	s.peers[peerId] = p
+
+	s.peerLock.Unlock()
 	go p.Start()
 
 	s.afterAddPeerHandler(p, s.peers, s)
@@ -66,12 +71,14 @@ func (s *EventDrivenServer) AddPeer(p Peer) {
 func (s *EventDrivenServer) RemovePeer(peerId int) (err error) {
 	s.beforeRemovePeerHandler(peerId, s.peers, s)
 
+	s.peerLock.Lock()
 	if peer, ok := s.peers[peerId]; ok {
 		peer.Close()
 		delete(s.peers, peerId)
 	} else {
 		err = errors.New("peer not exist")
 	}
+	s.peerLock.Unlock()
 
 	s.afterRemovePeerHandler(peerId, s.peers, s)
 	return
@@ -83,6 +90,7 @@ func (s *EventDrivenServer) GetPeerCount() int {
 
 // Register lifecycle hook.
 // At this time the new peer's id has been allocated, but `peers` not contains the new peer.
+// This hook won't be triggered concurrently.
 func (s *EventDrivenServer) BeforeAddPeer(f func(newPeer Peer, peers map[int]Peer, s *EventDrivenServer)) *EventDrivenServer {
 	s.beforeAddPeerHandler = f
 	return s
@@ -90,18 +98,25 @@ func (s *EventDrivenServer) BeforeAddPeer(f func(newPeer Peer, peers map[int]Pee
 
 // Register lifecycle hook.
 // At this time the new peer's id has been allocated, and `peers` contains the new peer.
+// This hook may be triggered concurrently.
 func (s *EventDrivenServer) AfterAddPeer(f func(newPeer Peer, peers map[int]Peer, s *EventDrivenServer)) *EventDrivenServer {
 	s.afterAddPeerHandler = f
 	return s
 }
 
 // Register lifecycle hook.
+// The target peer may has been closed.
+// The target peer may not exist.
+// This hook may be triggered concurrently.
 func (s *EventDrivenServer) BeforeRemovePeer(f func(targetId int, peers map[int]Peer, s *EventDrivenServer)) *EventDrivenServer {
 	s.beforeRemovePeerHandler = f
 	return s
 }
 
 // Register lifecycle hook.
+// The target peer may not exist.
+// If it exists, it must been closed, and been removed from `peers`.
+// This hook may be triggered concurrently.
 func (s *EventDrivenServer) AfterRemovePeer(f func(targetId int, peers map[int]Peer, s *EventDrivenServer)) *EventDrivenServer {
 	s.afterRemovePeerHandler = f
 	return s
@@ -109,17 +124,20 @@ func (s *EventDrivenServer) AfterRemovePeer(f func(targetId int, peers map[int]P
 
 // Register lifecycle hook.
 // You can modify or enrich the peer message before process it.
+// This hook may be triggered concurrently.
 func (s *EventDrivenServer) BeforeProcPeerMsg(f func(peers map[int]Peer, m *PeerMsg, s *EventDrivenServer)) *EventDrivenServer {
 	s.beforeProcPeerMsgHandler = f
 	return s
 }
 
 // Register lifecycle hook.
+// This hook may be triggered concurrently.
 func (s *EventDrivenServer) OnPeerMsg(f func(peers map[int]Peer, m *PeerMsg, s *EventDrivenServer)) *EventDrivenServer {
 	s.onPeerMsgHandler = f
 	return s
 }
 
+// Return errors from peer.Close() when stop the server.
 func (s *EventDrivenServer) Start() (errs []error) {
 	errs = []error{}
 
