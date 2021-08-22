@@ -8,6 +8,8 @@ type Peer interface {
 	Close() error
 	Start()
 	GetId() int
+	GetTag() string
+	SetTag(string)
 }
 
 type PeerMsg struct {

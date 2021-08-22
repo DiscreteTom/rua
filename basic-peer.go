@@ -15,6 +15,7 @@ type basicPeer struct {
 	timeout int // in ms
 	lock    sync.Mutex
 	closed  bool
+	tag     string
 }
 
 func NewBasicPeer(c net.Conn, gs GameServer, bufSize int) *basicPeer {
@@ -25,12 +26,26 @@ func NewBasicPeer(c net.Conn, gs GameServer, bufSize int) *basicPeer {
 		timeout: 0,
 		lock:    sync.Mutex{},
 		closed:  false,
+		tag:     "basic",
 	}
 }
 
 func (p *basicPeer) WithTimeout(ms int) *basicPeer {
 	p.timeout = ms
 	return p
+}
+
+func (p *basicPeer) WithTag(t string) *basicPeer {
+	p.tag = t
+	return p
+}
+
+func (p *basicPeer) SetTag(t string) {
+	p.tag = t
+}
+
+func (p *basicPeer) GetTag() string {
+	return p.tag
 }
 
 func (p *basicPeer) Activate(id int) {

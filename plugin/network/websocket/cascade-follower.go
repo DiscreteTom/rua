@@ -11,6 +11,7 @@ type websocketCascadeFollower struct {
 	leaderAddr string
 	leaderPath string
 	gs         rua.GameServer
+	peerTag    string
 }
 
 func NewWebsocketCascadeFollower(leaderAddr string, gs rua.GameServer) *websocketCascadeFollower {
@@ -18,7 +19,13 @@ func NewWebsocketCascadeFollower(leaderAddr string, gs rua.GameServer) *websocke
 		leaderAddr: leaderAddr,
 		leaderPath: "/",
 		gs:         gs,
+		peerTag:    "websocket/cascade/follower",
 	}
+}
+
+func (f *websocketCascadeFollower) WithPeerTag(t string) *websocketCascadeFollower {
+	f.peerTag = t
+	return f
 }
 
 func (f *websocketCascadeFollower) WithLeaderPath(p string) *websocketCascadeFollower {
@@ -31,6 +38,6 @@ func (f *websocketCascadeFollower) Connect() error {
 	if err != nil {
 		return err
 	}
-	f.gs.AddPeer(NewWebsocketPeer(c, f.gs))
+	f.gs.AddPeer(NewWebsocketPeer(c, f.gs).WithTag(f.peerTag))
 	return nil
 }

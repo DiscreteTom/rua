@@ -14,6 +14,7 @@ type websocketPeer struct {
 	gs     rua.GameServer
 	lock   sync.Mutex
 	closed bool
+	tag    string
 }
 
 func NewWebsocketPeer(c *websocket.Conn, gs rua.GameServer) *websocketPeer {
@@ -22,7 +23,21 @@ func NewWebsocketPeer(c *websocket.Conn, gs rua.GameServer) *websocketPeer {
 		gs:     gs,
 		lock:   sync.Mutex{},
 		closed: false,
+		tag:    "websocket",
 	}
+}
+
+func (p *websocketPeer) WithTag(t string) *websocketPeer {
+	p.tag = t
+	return p
+}
+
+func (p *websocketPeer) SetTag(t string) {
+	p.tag = t
+}
+
+func (p *websocketPeer) GetTag() string {
+	return p.tag
 }
 
 func (p *websocketPeer) Activate(id int) {

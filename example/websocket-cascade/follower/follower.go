@@ -13,8 +13,10 @@ func main() {
 	s := rua.NewEventDrivenServer().
 		SetHandleKeyboardInterrupt(true).
 		OnPeerMsg(func(peers map[int]rua.Peer, m *rua.PeerMsg, s *rua.EventDrivenServer) {
-			// print message from the leader
-			log.Println(m.Data)
+			if peers[m.PeerId].GetTag() == "websocket/cascade/follower" {
+				// print message from the leader
+				log.Println(m.Data)
+			}
 		})
 
 	// connect to the leader

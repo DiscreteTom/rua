@@ -13,9 +13,11 @@ func main() {
 	s := rua.NewEventDrivenServer().
 		SetHandleKeyboardInterrupt(true).
 		AfterAddPeer(func(newPeer rua.Peer, peers map[int]rua.Peer, s *rua.EventDrivenServer) {
-			// tell every peer its id
+			// tell every cascade follower its leader peer id
 			for i, p := range peers {
-				p.Write([]byte(fmt.Sprintf("%d", i)))
+				if p.GetTag() == "websocket/cascade/leader" {
+					p.Write([]byte(fmt.Sprintf("%d", i)))
+				}
 			}
 		})
 
