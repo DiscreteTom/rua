@@ -14,7 +14,7 @@ func main() {
 	errChan := make(chan error)
 	s := rua.NewLockStepServer().
 		SetHandleKeyboardInterrupt(true).
-		On(rua.Step, dynamicStepHandler)
+		OnStep(dynamicStepHandler)
 
 	go func() {
 		errChan <- websocket.NewWebsocketListener(":8080", s).Start()

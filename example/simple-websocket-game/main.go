@@ -20,18 +20,18 @@ func main() {
 	game := &Game{
 		PlayerHealth: map[int]int{},
 	}
-	// each player has 10 health point
+	// init player's health
 	for i := 0; i < playerCount; i++ {
 		game.PlayerHealth[i] = playerMaxHealth
 	}
 
-	errChan := make(chan error)
 	s := rua.NewEventDrivenServer().
 		SetHandleKeyboardInterrupt(true).
-		On(rua.Msg, func(peers map[int]rua.Peer, msg *rua.PeerMsg, s *rua.EventDrivenServer) {
+		OnPeerMsg(func(peers map[int]rua.Peer, msg *rua.PeerMsg, s *rua.EventDrivenServer) {
 			statefulEventDrivenHandler(peers, msg, s, game)
 		})
 
+	errChan := make(chan error)
 	go func() {
 		errChan <- websocket.NewWebsocketListener(":8080", s).WithGuardian(func(_ http.ResponseWriter, _ *http.Request, gs rua.GameServer) bool {
 			return gs.GetPeerCount() < playerCount // only playerCount players can be accepted

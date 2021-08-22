@@ -17,7 +17,7 @@ func main() {
 	errChan := make(chan error)
 	s := rua.NewLockStepServer().
 		SetHandleKeyboardInterrupt(true).
-		On(rua.Step, dynamicStepHandler)
+		OnStep(dynamicStepHandler)
 
 	key := pbkdf2.Key([]byte("demo pass"), []byte("demo salt"), 1024, 32, sha1.New)
 	go func() {

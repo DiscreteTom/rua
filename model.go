@@ -21,15 +21,3 @@ type GameServer interface {
 	GetPeerCount() int
 	AppendPeerMsg(peerId int, d []byte)
 }
-
-type GameServerLifeCycleEvent int
-
-const (
-	BeforeAddPeer GameServerLifeCycleEvent = iota
-	AfterAddPeer
-	BeforeRemovePeer
-	AfterRemovePeer
-	BeforeProcPeerMsg
-	Msg
-	Step
-)

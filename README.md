@@ -30,7 +30,7 @@ import (
 func main() {
 	s := rua.NewEventDrivenServer().
 		SetHandleKeyboardInterrupt(true).
-		On(rua.Msg, func(peers map[int]rua.Peer, msg *rua.PeerMsg, _ *rua.EventDrivenServer) {
+		OnPeerMsg(func(peers map[int]rua.Peer, msg *rua.PeerMsg, _ *rua.EventDrivenServer) {
 			// broadcast to everyone
 			for _, p := range peers {
 				go p.Write(msg.Data)
