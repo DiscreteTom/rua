@@ -29,7 +29,7 @@ func main() {
 	s := rua.NewEventDrivenServer().
 		SetHandleKeyboardInterrupt(true).
 		On(rua.AppendPeerMsg, func(peers map[int]rua.Peer, msg *rua.PeerMsg, s *rua.EventDrivenServer) {
-			statefulFifoHandler(peers, msg, s, game)
+			statefulEventDrivenHandler(peers, msg, s, game)
 		})
 
 	go func() {
@@ -54,7 +54,7 @@ func main() {
 	}
 }
 
-func statefulFifoHandler(peers map[int]rua.Peer, msg *rua.PeerMsg, _ *rua.EventDrivenServer, state *Game) {
+func statefulEventDrivenHandler(peers map[int]rua.Peer, msg *rua.PeerMsg, _ *rua.EventDrivenServer, state *Game) {
 	if state.PlayerHealth[msg.PeerId] == 0 {
 		// dead player can not attack
 		go peers[msg.PeerId].Write([]byte("You are dead and can not attack\n"))

@@ -103,7 +103,7 @@ func (s *EventDrivenServer) Start() (errs []error) {
 	kbc := make(chan os.Signal, 1)
 	signal.Notify(kbc, os.Interrupt)
 
-	log.Println("fifo server started")
+	log.Println("eventdriven server started")
 
 	loop := true
 	for loop {
