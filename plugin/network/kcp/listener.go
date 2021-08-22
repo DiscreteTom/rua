@@ -72,7 +72,7 @@ func (l *kcpListener) Start() error {
 			return err
 		}
 		if l.guardian == nil || l.guardian(c, l.gs) {
-			p := &kcpPeer{c: c, gs: l.gs, bufSize: l.bufSize, timeout: l.peerTimeout}
+			p := rua.NewBasicPeer(c, l.gs, l.bufSize).WithTimeout(l.peerTimeout)
 			l.gs.AddPeer(p)
 		}
 	}
