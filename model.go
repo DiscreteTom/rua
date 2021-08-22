@@ -29,7 +29,7 @@ const (
 	AfterAddPeer
 	BeforeRemovePeer
 	AfterRemovePeer
+	BeforeProcPeerMsg
+	Msg
 	Step
-	BeforeAppendPeerMsg
-	AppendPeerMsg
 )

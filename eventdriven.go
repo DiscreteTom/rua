@@ -16,8 +16,8 @@ type EventDrivenServer struct {
 	onAfterAddPeer          func(newPeer Peer, peers map[int]Peer, s *EventDrivenServer) // lifecycle hook
 	onBeforeRemovePeer      func(targetId int, peers map[int]Peer, s *EventDrivenServer) // lifecycle hook
 	onAfterRemovePeer       func(targetId int, peers map[int]Peer, s *EventDrivenServer) // lifecycle hook
-	onBeforeAppendPeerMsg   func(peers map[int]Peer, m *PeerMsg, s *EventDrivenServer)   // lifecycle hook
-	onAppendPeerMsg         func(peers map[int]Peer, m *PeerMsg, s *EventDrivenServer)   // lifecycle hook
+	onBeforeProcPeerMsg     func(peers map[int]Peer, m *PeerMsg, s *EventDrivenServer)   // lifecycle hook
+	onMsg                   func(peers map[int]Peer, m *PeerMsg, s *EventDrivenServer)   // lifecycle hook
 }
 
 func NewEventDrivenServer() *EventDrivenServer {
@@ -29,8 +29,8 @@ func NewEventDrivenServer() *EventDrivenServer {
 		onAfterAddPeer:          func(newPeer Peer, peers map[int]Peer, s *EventDrivenServer) {},
 		onBeforeRemovePeer:      func(targetId int, peers map[int]Peer, s *EventDrivenServer) {},
 		onAfterRemovePeer:       func(targetId int, peers map[int]Peer, s *EventDrivenServer) {},
-		onBeforeAppendPeerMsg:   func(peers map[int]Peer, m *PeerMsg, s *EventDrivenServer) {},
-		onAppendPeerMsg:         func(peers map[int]Peer, m *PeerMsg, s *EventDrivenServer) {},
+		onBeforeProcPeerMsg:     func(peers map[int]Peer, m *PeerMsg, s *EventDrivenServer) {},
+		onMsg:                   func(peers map[int]Peer, m *PeerMsg, s *EventDrivenServer) {},
 	}
 }
 
@@ -88,10 +88,10 @@ func (s *EventDrivenServer) On(event GameServerLifeCycleEvent, f interface{}) *E
 		s.onBeforeRemovePeer = f.(func(targetId int, peers map[int]Peer, s *EventDrivenServer))
 	case AfterRemovePeer:
 		s.onAfterRemovePeer = f.(func(targetId int, peers map[int]Peer, s *EventDrivenServer))
-	case BeforeAppendPeerMsg:
-		s.onBeforeAppendPeerMsg = f.(func(peers map[int]Peer, m *PeerMsg, s *EventDrivenServer))
-	case AppendPeerMsg:
-		s.onAppendPeerMsg = f.(func(peers map[int]Peer, m *PeerMsg, s *EventDrivenServer))
+	case BeforeProcPeerMsg:
+		s.onBeforeProcPeerMsg = f.(func(peers map[int]Peer, m *PeerMsg, s *EventDrivenServer))
+	case Msg:
+		s.onMsg = f.(func(peers map[int]Peer, m *PeerMsg, s *EventDrivenServer))
 	}
 	return s
 }
@@ -136,9 +136,8 @@ func (s *EventDrivenServer) AppendPeerMsg(peerId int, d []byte) {
 
 	// handle lifecycle hook
 	// this hook can modify peerMsg before append
-	s.onBeforeAppendPeerMsg(s.peers, &peerMsg, s)
+	s.onBeforeProcPeerMsg(s.peers, &peerMsg, s)
 
 	// handle lifecycle hook
-	s.onAppendPeerMsg(s.peers, &peerMsg, s)
-
+	s.onMsg(s.peers, &peerMsg, s)
 }
