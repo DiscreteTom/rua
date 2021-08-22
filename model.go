@@ -7,6 +7,7 @@ type Peer interface {
 	Write([]byte) error
 	Close() error
 	Start()
+	GetId() int
 }
 
 type PeerMsg struct {

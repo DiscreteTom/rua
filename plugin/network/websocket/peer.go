@@ -24,6 +24,10 @@ func (p *websocketPeer) Close() error {
 	return p.c.Close() // close websocket conn
 }
 
+func (p *websocketPeer) GetId() int {
+	return p.id
+}
+
 func (p *websocketPeer) Start() {
 	for {
 		_, msg, err := p.c.ReadMessage()
