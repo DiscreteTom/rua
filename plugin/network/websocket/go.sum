@@ -1,0 +1,4 @@
+github.com/DiscreteTom/rua v0.0.0-20210822155832-ec1b1e316437 h1:3TyOkXQ5g0AJdJpdKiSS19llJulTi0WoctLa7XrKNok=
+github.com/DiscreteTom/rua v0.0.0-20210822155832-ec1b1e316437/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
+github.com/gorilla/websocket v1.4.2 h1:+/TMaTYc4QFitKJxsQ7Yye35DkWvkdLcvGKqM+x0Ufc=
+github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
