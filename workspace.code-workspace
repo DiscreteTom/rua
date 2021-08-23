@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "plugin/network/kcp"
+		},
+		{
+			"path": "plugin/network/websocket"
+		}
+	],
+	"settings": {}
+}
