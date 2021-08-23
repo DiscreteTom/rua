@@ -17,11 +17,21 @@
 
 ## 安装
 
+安装服务器本体
+
 ```bash
 go get github.com/DiscreteTom/rua
 ```
 
+安装插件（以websocket为例）
+
+```bash
+go get github.com/DiscreteTom/rua/plugin/network/websocket
+```
+
 ## 入门
+
+> 运行此示例代码需要安装websocket插件
 
 ```go
 package main
@@ -49,7 +59,10 @@ func main() {
 }
 ```
 
-## [更多示例](https://github.com/DiscreteTom/rua/tree/main/example)
+## 更多示例
+
+- [Websocket](https://github.com/DiscreteTom/rua/tree/main/plugin/network/websocket/example)
+- [KCP](https://github.com/DiscreteTom/rua/tree/main/plugin/network/kcp/example)
 
 ## TODO
 
