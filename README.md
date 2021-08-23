@@ -61,8 +61,8 @@ func main() {
 
 ## 更多示例
 
-- [Websocket](https://github.com/DiscreteTom/rua/tree/main/plugin/network/websocket/example)
-- [KCP](https://github.com/DiscreteTom/rua/tree/main/plugin/network/kcp/example)
+- [Websocket](https://github.com/DiscreteTom/rua/tree/main/plugin/network/websocket/_example)
+- [KCP](https://github.com/DiscreteTom/rua/tree/main/plugin/network/kcp/_example)
 
 ## TODO
 
