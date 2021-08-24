@@ -18,6 +18,7 @@ type basicPeer struct {
 	tag     string
 }
 
+// Create a peer with a connection of `net.Conn`.
 func NewBasicPeer(c net.Conn, gs GameServer, bufSize int) *basicPeer {
 	return &basicPeer{
 		c:       c,
