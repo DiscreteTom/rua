@@ -20,6 +20,7 @@ type EventDrivenServer struct {
 	afterRemovePeerHandler   func(targetId int, peers map[int]Peer, s *EventDrivenServer) // lifecycle hook
 	beforeProcPeerMsgHandler func(peers map[int]Peer, m *PeerMsg, s *EventDrivenServer)   // lifecycle hook
 	onPeerMsgHandler         func(peers map[int]Peer, m *PeerMsg, s *EventDrivenServer)   // lifecycle hook
+	logger                   Logger
 }
 
 func NewEventDrivenServer() *EventDrivenServer {
@@ -34,7 +35,17 @@ func NewEventDrivenServer() *EventDrivenServer {
 		afterRemovePeerHandler:   func(targetId int, peers map[int]Peer, s *EventDrivenServer) {},
 		beforeProcPeerMsgHandler: func(peers map[int]Peer, m *PeerMsg, s *EventDrivenServer) {},
 		onPeerMsgHandler:         func(peers map[int]Peer, m *PeerMsg, s *EventDrivenServer) {},
+		logger:                   GetDefaultLogger(),
 	}
+}
+
+func (s *EventDrivenServer) WithLogger(l Logger) *EventDrivenServer {
+	s.logger = l
+	return s
+}
+
+func (s *EventDrivenServer) GetLogger() Logger {
+	return s.logger
 }
 
 func (s *EventDrivenServer) SetHandleKeyboardInterrupt(enable bool) *EventDrivenServer {
@@ -67,13 +78,15 @@ func (s *EventDrivenServer) AddPeer(p Peer) {
 
 }
 
-// Close the peer and untrack it.
+// Close the peer and untrack it. Return err if peer not exist.
 func (s *EventDrivenServer) RemovePeer(peerId int) (err error) {
 	s.beforeRemovePeerHandler(peerId, s.peers, s)
 
 	s.peerLock.Lock()
 	if peer, ok := s.peers[peerId]; ok {
-		peer.Close()
+		if err := peer.Close(); err != nil {
+			s.logger.Error(err)
+		}
 		delete(s.peers, peerId)
 	} else {
 		err = errors.New("peer not exist")

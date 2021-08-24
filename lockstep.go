@@ -27,6 +27,7 @@ type LockstepServer struct {
 	beforeProcPeerMsgHandler func(step int, peers map[int]Peer, m *PeerMsg, s *LockstepServer)         // lifecycle hook
 	onPeerMsgHandler         func(step int, peers map[int]Peer, m *PeerMsg, s *LockstepServer)         // lifecycle hook
 	onStepHandler            func(step int, peers map[int]Peer, peerMsgs []PeerMsg, s *LockstepServer) // lifecycle hook
+	logger                   Logger
 }
 
 func NewLockStepServer() *LockstepServer {
@@ -48,7 +49,17 @@ func NewLockStepServer() *LockstepServer {
 		beforeProcPeerMsgHandler: func(step int, peers map[int]Peer, m *PeerMsg, s *LockstepServer) {},
 		onPeerMsgHandler:         func(step int, peers map[int]Peer, m *PeerMsg, s *LockstepServer) {},
 		onStepHandler:            func(step int, peers map[int]Peer, peerMsgs []PeerMsg, s *LockstepServer) {},
+		logger:                   GetDefaultLogger(),
 	}
+}
+
+func (s *LockstepServer) WithLogger(l Logger) *LockstepServer {
+	s.logger = l
+	return s
+}
+
+func (s *LockstepServer) GetLogger() Logger {
+	return s.logger
 }
 
 // Set the current step length.
@@ -115,13 +126,15 @@ func (s *LockstepServer) AddPeer(p Peer) {
 	s.afterAddPeerHandler(s.currentStep, p, s.peers, s)
 }
 
-// Close the peer and untrack it.
+// Close the peer and untrack it. Return err if peer not exist.
 func (s *LockstepServer) RemovePeer(peerId int) (err error) {
 	s.beforeRemovePeerHandler(s.currentStep, peerId, s.peers, s)
 
 	s.peerLock.Lock()
 	if peer, ok := s.peers[peerId]; ok {
-		peer.Close()
+		if err := peer.Close(); err != nil {
+			s.logger.Error(err)
+		}
 		delete(s.peers, peerId)
 	} else {
 		err = errors.New("peer not exist")

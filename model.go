@@ -6,7 +6,7 @@ type Peer interface {
 	Activate(peerId int)
 	Write([]byte) error
 	Close() error
-	Start()
+	Start() // start and wait
 	GetId() int
 	GetTag() string
 	SetTag(string)
@@ -25,4 +25,14 @@ type GameServer interface {
 	AppendPeerMsg(peerId int, d []byte)
 	Start() []error
 	Stop()
+}
+
+type Logger interface {
+	Trace(v ...interface{})
+	Debug(v ...interface{})
+	Info(v ...interface{})
+	Warn(v ...interface{})
+	Error(v ...interface{})
+	Fatal(v ...interface{})
+	Panic(v ...interface{})
 }
