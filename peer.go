@@ -1,7 +1,6 @@
 package rua
 
 import (
-	"fmt"
 	"net"
 	"sync"
 	"time"
@@ -100,7 +99,7 @@ func (p *basicPeer) Start() {
 				break
 			}
 			if err.Error() == "timeout" {
-				p.logger.Info(fmt.Sprintf("peer[%d] timeout", p.id))
+				p.logger.Infof("peer[%d] timeout", p.id)
 			}
 			if err := p.gs.RemovePeer(p.id); err != nil {
 				p.logger.Error(err)
