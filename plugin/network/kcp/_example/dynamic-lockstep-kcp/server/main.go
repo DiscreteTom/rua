@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/sha1"
 	"encoding/binary"
-	"fmt"
 	"log"
 	"time"
 
@@ -47,9 +46,9 @@ func dynamicStepHandler(step int, peers map[int]rua.Peer, msgs []rua.PeerMsg, s 
 		recvTime := msgs[0].Time.UnixMilli()
 		rtt := int(recvTime - sendTime) // round trip time
 
-		fmt.Println("rtt(ms):", rtt)
+		s.GetLogger().Infof("rtt(ms): %d", rtt)
 		s.SetStepLength(rtt)
-		fmt.Println("new step length:", s.GetCurrentStepLength())
+		s.GetLogger().Infof("new step length: %d", s.GetCurrentStepLength())
 	}
 
 	// broadcast current time
@@ -58,7 +57,7 @@ func dynamicStepHandler(step int, peers map[int]rua.Peer, msgs []rua.PeerMsg, s 
 	binary.LittleEndian.PutUint64(buf, uint64(currentTime))
 	for _, p := range peers {
 		if err := p.Write(buf); err != nil {
-			log.Println(err)
+			s.GetLogger().Error(err)
 		}
 	}
 }

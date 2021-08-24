@@ -19,6 +19,8 @@ type kcpListener struct {
 	peerTimeout  int // in ms
 	guardian     func(c *kcp.UDPSession, gs rua.GameServer) bool
 	peerTag      string
+	logger       rua.Logger
+	maxAttempts  int
 }
 
 func NewKcpListener(addr string, gs rua.GameServer, key []byte, bufSize int) *kcpListener {
@@ -33,7 +35,14 @@ func NewKcpListener(addr string, gs rua.GameServer, key []byte, bufSize int) *kc
 		peerTimeout:  1000,
 		guardian:     nil,
 		peerTag:      "kcp",
+		logger:       rua.GetDefaultLogger(),
+		maxAttempts:  10,
 	}
+}
+
+func (l *kcpListener) WithLogger(logger rua.Logger) *kcpListener {
+	l.logger = logger
+	return l
 }
 
 func (l *kcpListener) WithPeerTag(t string) *kcpListener {
@@ -66,20 +75,37 @@ func (l *kcpListener) WithGuardian(g func(c *kcp.UDPSession, gs rua.GameServer) 
 	return l
 }
 
+func (l *kcpListener) WithMaxAttempts(count int) *kcpListener {
+	l.maxAttempts = count
+	return l
+}
+
 func (l *kcpListener) Start() error {
-	log.Println("kcp server is listening at", l.addr)
-	block, _ := blockCrypt(l.crypt, l.key)
+	l.logger.Infof("kcp listener is listening at %s", l.addr)
+	block, err := blockCrypt(l.crypt, l.key)
+	if err != nil {
+		return err
+	}
 	listener, err := kcp.ListenWithOptions(l.addr, block, l.dataShards, l.parityShards)
 	if err != nil {
 		return err
 	}
+
+	attempts := 0
 	for {
 		c, err := listener.AcceptKCP()
 		if err != nil {
-			return err
-		}
-		if l.guardian == nil || l.guardian(c, l.gs) {
-			l.gs.AddPeer(rua.NewBasicPeer(c, l.gs, l.bufSize).WithTimeout(l.peerTimeout).WithTag(l.peerTag))
+			if attempts < l.maxAttempts {
+				l.logger.Error(err)
+				attempts++
+			} else {
+				return err
+			}
+		} else { // err == nil
+			attempts = 0
+			if l.guardian == nil || l.guardian(c, l.gs) {
+				l.gs.AddPeer(rua.NewBasicPeer(c, l.gs, l.bufSize).WithLogger(l.logger).WithTimeout(l.peerTimeout).WithTag(l.peerTag))
+			}
 		}
 	}
 }
