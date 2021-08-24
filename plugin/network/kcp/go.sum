@@ -2,6 +2,8 @@ github.com/DiscreteTom/rua v0.0.0-20210822155832-ec1b1e316437 h1:3TyOkXQ5g0AJdJp
 github.com/DiscreteTom/rua v0.0.0-20210822155832-ec1b1e316437/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
 github.com/DiscreteTom/rua v0.0.0-20210824152104-4b4158dbbcef h1:HsKqWQnY3v3zpF0osLQvokCOeilf6Gv8EXkad5vhntE=
 github.com/DiscreteTom/rua v0.0.0-20210824152104-4b4158dbbcef/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
+github.com/DiscreteTom/rua v0.0.0-20210824191044-0e21305de38c h1:lvrdUwjerbZUcUFrrZHRlBMwkbp6/PXHkjdqCZ5lo1c=
+github.com/DiscreteTom/rua v0.0.0-20210824191044-0e21305de38c/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/klauspost/cpuid v1.2.4/go.mod h1:Pj4uuM528wm8OyEC2QMXAi2YiTZ96dNQPGgoMS4s3ek=
