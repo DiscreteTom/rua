@@ -1,7 +1,6 @@
 package websocket
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/DiscreteTom/rua"
@@ -12,6 +11,7 @@ type websocketCascadeLeader struct {
 	path    string
 	gs      rua.GameServer
 	peerTag string
+	logger  rua.Logger
 }
 
 func NewWebsocketCascadeLeader(addr string, gs rua.GameServer) *websocketCascadeLeader {
@@ -20,7 +20,13 @@ func NewWebsocketCascadeLeader(addr string, gs rua.GameServer) *websocketCascade
 		path:    "/",
 		gs:      gs,
 		peerTag: "websocket/cascade/leader",
+		logger:  rua.GetDefaultLogger(),
 	}
+}
+
+func (l *websocketCascadeLeader) WithLogger(logger rua.Logger) *websocketCascadeLeader {
+	l.logger = logger
+	return l
 }
 
 func (l *websocketCascadeLeader) WithPeerTag(t string) *websocketCascadeLeader {
@@ -37,11 +43,11 @@ func (l *websocketCascadeLeader) Start() error {
 	http.HandleFunc(l.path, func(w http.ResponseWriter, r *http.Request) {
 		c, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			log.Print("upgrade:", err)
+			l.logger.Error(err)
 			return
 		}
-		l.gs.AddPeer(NewWebsocketPeer(c, l.gs).WithTag(l.peerTag))
+		l.gs.AddPeer(NewWebsocketPeer(c, l.gs).WithLogger(l.logger).WithTag(l.peerTag))
 	})
-	log.Println("websocket server is listening at", l.addr)
+	l.logger.Info("websocket cascade leader is listening at", l.addr)
 	return http.ListenAndServe(l.addr, nil)
 }

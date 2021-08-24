@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/DiscreteTom/rua"
 	"github.com/DiscreteTom/rua/plugin/network/websocket"
@@ -25,16 +24,16 @@ func main() {
 
 	select {
 	case err := <-errChan:
-		log.Println(err)
+		s.GetLogger().Error(err)
 	case errs := <-serverErrsChan:
 		if len(errs) != 0 {
-			log.Println(errs)
+			s.GetLogger().Error(errs)
 		}
 		break
 	}
 }
 
-func broadcastStepHandler(step int, peers map[int]rua.Peer, msgs []rua.PeerMsg, _ *rua.LockstepServer) {
+func broadcastStepHandler(step int, peers map[int]rua.Peer, msgs []rua.PeerMsg, s *rua.LockstepServer) {
 	// compact msgs in one byte array
 	result := []byte(fmt.Sprintf("step: %d\n", step))
 	for _, msg := range msgs {
@@ -44,6 +43,10 @@ func broadcastStepHandler(step int, peers map[int]rua.Peer, msgs []rua.PeerMsg, 
 	}
 	// broadcast to everyone
 	for _, p := range peers {
-		go p.Write(result)
+		go func() {
+			if err := p.Write(result); err != nil {
+				s.GetLogger().Error(err)
+			}
+		}()
 	}
 }

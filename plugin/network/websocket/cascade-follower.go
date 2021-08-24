@@ -33,6 +33,8 @@ func (f *websocketCascadeFollower) WithLeaderPath(p string) *websocketCascadeFol
 	return f
 }
 
+// Connect to the cascade leader & add a peer to the game server.
+// Return websocket dial error.
 func (f *websocketCascadeFollower) Connect() error {
 	c, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf("ws://%s%s", f.leaderAddr, f.leaderPath), nil)
 	if err != nil {

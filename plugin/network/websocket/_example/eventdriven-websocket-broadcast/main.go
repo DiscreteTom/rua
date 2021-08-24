@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/DiscreteTom/rua"
 	"github.com/DiscreteTom/rua/plugin/network/websocket"
@@ -25,16 +24,16 @@ func main() {
 
 	select {
 	case err := <-errChan:
-		log.Println(err)
+		s.GetLogger().Error(err)
 	case errs := <-serverErrsChan:
 		if len(errs) != 0 {
-			log.Println(errs)
+			s.GetLogger().Error(errs)
 		}
 		break
 	}
 }
 
-func broadcastEventDrivenHandler(peers map[int]rua.Peer, msg *rua.PeerMsg, _ *rua.EventDrivenServer) {
+func broadcastEventDrivenHandler(peers map[int]rua.Peer, msg *rua.PeerMsg, s *rua.EventDrivenServer) {
 	// compact msg in one byte array
 	result := []byte{}
 	result = append(result, []byte(fmt.Sprintf("from %d:\n", msg.PeerId))...)
@@ -42,6 +41,10 @@ func broadcastEventDrivenHandler(peers map[int]rua.Peer, msg *rua.PeerMsg, _ *ru
 	result = append(result, '\n')
 	// broadcast to everyone
 	for _, p := range peers {
-		go p.Write(result)
+		go func() {
+			if err := p.Write(result); err != 0 {
+				s.GetLogger().Error(err)
+			}
+		}()
 	}
 }

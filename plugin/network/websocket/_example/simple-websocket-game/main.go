@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"sync"
 
@@ -94,10 +93,10 @@ func main() {
 
 	select {
 	case err := <-errChan:
-		log.Println(err)
+		s.GetLogger().Error(err)
 	case errs := <-serverErrsChan:
 		if len(errs) != 0 {
-			log.Println(errs)
+			s.GetLogger().Error(errs)
 		}
 		break
 	}

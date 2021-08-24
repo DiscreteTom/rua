@@ -15,6 +15,7 @@ type websocketPeer struct {
 	lock   sync.Mutex
 	closed bool
 	tag    string
+	logger rua.Logger
 }
 
 func NewWebsocketPeer(c *websocket.Conn, gs rua.GameServer) *websocketPeer {
@@ -24,7 +25,13 @@ func NewWebsocketPeer(c *websocket.Conn, gs rua.GameServer) *websocketPeer {
 		lock:   sync.Mutex{},
 		closed: false,
 		tag:    "websocket",
+		logger: rua.GetDefaultLogger(),
 	}
+}
+
+func (p *websocketPeer) WithLogger(l rua.Logger) *websocketPeer {
+	p.logger = l
+	return p
 }
 
 func (p *websocketPeer) WithTag(t string) *websocketPeer {
@@ -72,7 +79,10 @@ func (p *websocketPeer) Start() {
 		if err != nil {
 			if !p.closed {
 				// not closed by Close(), we should remove the peer
-				p.gs.RemovePeer(p.id)
+				p.logger.Error(err)
+				if err := p.gs.RemovePeer(p.id); err != nil {
+					p.logger.Error(err)
+				}
 			}
 			break
 		}

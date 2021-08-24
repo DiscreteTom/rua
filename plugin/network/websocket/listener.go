@@ -1,7 +1,6 @@
 package websocket
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/DiscreteTom/rua"
@@ -17,6 +16,7 @@ type websocketListener struct {
 	gs       rua.GameServer
 	guardian func(w http.ResponseWriter, r *http.Request, gs rua.GameServer) bool
 	peerTag  string
+	logger   rua.Logger
 }
 
 func NewWebsocketListener(addr string, gs rua.GameServer) *websocketListener {
@@ -26,7 +26,13 @@ func NewWebsocketListener(addr string, gs rua.GameServer) *websocketListener {
 		gs:       gs,
 		guardian: nil,
 		peerTag:  "websocket",
+		logger:   rua.GetDefaultLogger(),
 	}
+}
+
+func (l *websocketListener) WithLogger(logger rua.Logger) *websocketListener {
+	l.logger = logger
+	return l
 }
 
 func (l *websocketListener) WithPath(p string) *websocketListener {
@@ -50,13 +56,13 @@ func (l *websocketListener) Start() error {
 			// upgrade http to websocket
 			c, err := upgrader.Upgrade(w, r, nil)
 			if err != nil {
-				log.Print("upgrade:", err)
+				l.logger.Error(err)
 				return
 			}
 
-			l.gs.AddPeer(NewWebsocketPeer(c, l.gs).WithTag(l.peerTag))
+			l.gs.AddPeer(NewWebsocketPeer(c, l.gs).WithLogger(l.logger).WithTag(l.peerTag))
 		}
 	})
-	log.Println("websocket server is listening at", l.addr)
+	l.logger.Info("websocket listener is listening at", l.addr)
 	return http.ListenAndServe(l.addr, nil)
 }
