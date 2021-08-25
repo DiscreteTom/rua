@@ -14,6 +14,7 @@
 - 生命周期钩子
 - 级联架构
 - 标记Peer
+- 自定义日志系统
 
 ## 安装
 
@@ -63,6 +64,14 @@ func main() {
 
 - [Websocket](https://github.com/DiscreteTom/rua/tree/main/plugin/network/websocket/_example)
 - [KCP](https://github.com/DiscreteTom/rua/tree/main/plugin/network/kcp/_example)
+
+## 日志
+
+- rua自身提供了默认的logger，可以使用`rua.GetDefaultLogger()`来获取它，或者使用`rua.SetDefaultLogger`来覆盖它
+  - 比如使用`rua.SetDefaultLogger(rua.NewDefaultLogger().WithLevel(rua.DEBUG))`来设置日志等级
+- 您也可以使用您自己的logger，比如使用logrus：`rua.SetDefaultLogger(logrus.New())`
+- 您可以对服务器使用`.GetLogger()`获取服务器的logger，进行日志输出
+- 您也可以使用`rua.NewBasicLogger`、`rua.NewBasicSimpleLogger`这两个helper函数，快速构建自定义的logger
 
 ## TODO
 
