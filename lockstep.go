@@ -2,7 +2,6 @@ package rua
 
 import (
 	"errors"
-	"log"
 	"os"
 	"os/signal"
 	"sync"
@@ -215,7 +214,7 @@ func (s *LockstepServer) Start() (errs []error) {
 	kbc := make(chan os.Signal, 1)
 	signal.Notify(kbc, os.Interrupt)
 
-	log.Println("lockstep server started, step length:", s.stepLength, "ms")
+	s.logger.Info("lockstep server started, step length:", s.stepLength, "ms")
 
 	loop := true
 	for loop {

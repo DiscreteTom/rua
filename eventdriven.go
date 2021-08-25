@@ -2,7 +2,6 @@ package rua
 
 import (
 	"errors"
-	"log"
 	"os"
 	"os/signal"
 	"sync"
@@ -158,7 +157,7 @@ func (s *EventDrivenServer) Start() (errs []error) {
 	kbc := make(chan os.Signal, 1)
 	signal.Notify(kbc, os.Interrupt)
 
-	log.Println("eventdriven server started")
+	s.logger.Info("eventdriven server started")
 
 	loop := true
 	for loop {
