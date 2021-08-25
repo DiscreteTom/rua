@@ -8,7 +8,7 @@ import (
 	"github.com/DiscreteTom/rua"
 )
 
-type basicPeer struct {
+type netPeer struct {
 	id      int // peer id
 	c       net.Conn
 	gs      rua.GameServer
@@ -21,8 +21,8 @@ type basicPeer struct {
 }
 
 // Create a peer with a connection of `net.Conn`.
-func NewBasicPeer(c net.Conn, gs rua.GameServer, bufSize int) *basicPeer {
-	return &basicPeer{
+func NewNetPeer(c net.Conn, gs rua.GameServer, bufSize int) *netPeer {
+	return &netPeer{
 		c:       c,
 		gs:      gs,
 		bufSize: bufSize,
@@ -34,35 +34,35 @@ func NewBasicPeer(c net.Conn, gs rua.GameServer, bufSize int) *basicPeer {
 	}
 }
 
-func (p *basicPeer) WithTimeout(ms int) *basicPeer {
+func (p *netPeer) WithTimeout(ms int) *netPeer {
 	p.timeout = ms
 	return p
 }
 
-func (p *basicPeer) WithTag(t string) *basicPeer {
+func (p *netPeer) WithTag(t string) *netPeer {
 	p.tag = t
 	return p
 }
 
-func (p *basicPeer) WithLogger(l rua.Logger) *basicPeer {
+func (p *netPeer) WithLogger(l rua.Logger) *netPeer {
 	p.logger = l
 	return p
 }
 
-func (p *basicPeer) SetTag(t string) {
+func (p *netPeer) SetTag(t string) {
 	p.tag = t
 }
 
-func (p *basicPeer) GetTag() string {
+func (p *netPeer) GetTag() string {
 	return p.tag
 }
 
-func (p *basicPeer) Activate(id int) {
+func (p *netPeer) Activate(id int) {
 	p.id = id
 }
 
 // Thread safe.
-func (p *basicPeer) Write(data []byte) error {
+func (p *netPeer) Write(data []byte) error {
 	// prevent concurrent write
 	p.lock.Lock()
 	defer p.lock.Unlock()
@@ -71,7 +71,7 @@ func (p *basicPeer) Write(data []byte) error {
 	return err
 }
 
-func (p *basicPeer) Close() error {
+func (p *netPeer) Close() error {
 	// wait after write finished
 	p.lock.Lock()
 	defer p.lock.Unlock()
@@ -80,12 +80,12 @@ func (p *basicPeer) Close() error {
 	return p.c.Close() // close connection
 }
 
-func (p *basicPeer) GetId() int {
+func (p *netPeer) GetId() int {
 	return p.id
 }
 
 // Start the peer and wait.
-func (p *basicPeer) Start() {
+func (p *netPeer) Start() {
 	if p.timeout != 0 {
 		if err := p.c.SetReadDeadline(time.Now().Add(time.Duration(p.timeout) * time.Millisecond)); err != nil {
 			p.logger.Error(err)
