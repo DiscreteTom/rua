@@ -56,8 +56,10 @@ func (p *filePeer) Write(data []byte) error {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	_, err := p.fp.Write(data)
-	return err
+	if _, err := p.fp.Write(data); err != nil {
+		return err
+	}
+	return p.fp.Sync() // flush to disk
 }
 
 func (p *filePeer) Close() error {
