@@ -8,6 +8,8 @@ github.com/DiscreteTom/rua v0.0.0-20210824191044-0e21305de38c h1:lvrdUwjerbZUcUF
 github.com/DiscreteTom/rua v0.0.0-20210824191044-0e21305de38c/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
 github.com/DiscreteTom/rua v0.0.0-20210824193227-e5d0277b8907 h1:MQ/kM/Gus/zohUJCXM1K6PfMNlG9SOX6ewB7oTG7U/8=
 github.com/DiscreteTom/rua v0.0.0-20210824193227-e5d0277b8907/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
+github.com/DiscreteTom/rua v0.0.0-20210825092518-9e722727cdb6 h1:zQ1hRr2lb7PEgBRwqE2oeTEZ+BU9+PLIb3XcD3Rs2QE=
+github.com/DiscreteTom/rua v0.0.0-20210825092518-9e722727cdb6/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=

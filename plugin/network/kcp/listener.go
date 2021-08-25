@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/DiscreteTom/rua"
+	"github.com/DiscreteTom/rua/peers/network"
 
 	"github.com/xtaci/kcp-go/v5"
 )
@@ -104,7 +105,7 @@ func (l *kcpListener) Start() error {
 		} else { // err == nil
 			attempts = 0
 			if l.guardian == nil || l.guardian(c, l.gs) {
-				l.gs.AddPeer(rua.NewBasicPeer(c, l.gs, l.bufSize).WithLogger(l.logger).WithTimeout(l.peerTimeout).WithTag(l.peerTag))
+				l.gs.AddPeer(network.NewBasicPeer(c, l.gs, l.bufSize).WithLogger(l.logger).WithTimeout(l.peerTimeout).WithTag(l.peerTag))
 			}
 		}
 	}

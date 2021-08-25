@@ -3,7 +3,7 @@ module github.com/DiscreteTom/rua/plugin/network/kcp
 go 1.17
 
 require (
-	github.com/DiscreteTom/rua v0.0.0-20210824193227-e5d0277b8907
+	github.com/DiscreteTom/rua v0.0.0-20210825092518-9e722727cdb6
 	github.com/xtaci/kcp-go/v5 v5.6.1
 )
 
