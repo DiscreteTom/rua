@@ -29,7 +29,7 @@ func NewNetPeer(c net.Conn, gs rua.GameServer, bufSize int) *netPeer {
 		timeout: 0,
 		lock:    sync.Mutex{},
 		closed:  false,
-		tag:     "basic",
+		tag:     "net",
 		logger:  rua.GetDefaultLogger(),
 	}
 }
