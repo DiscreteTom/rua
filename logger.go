@@ -169,14 +169,18 @@ func (l *basicLogger) Panicf(format string, v ...interface{}) {
 	}
 }
 
-var defaultLogger *basicLogger
+var defaultLogger Logger
 
 // Get the existing or create a new default logger.
-func GetDefaultLogger() *basicLogger {
+func GetDefaultLogger() Logger {
 	if defaultLogger == nil {
 		defaultLogger = NewDefaultLogger()
 	}
 	return defaultLogger
+}
+
+func SetDefaultLogger(logger Logger) {
+	defaultLogger = logger
 }
 
 func NewDefaultLogger() *basicLogger {
