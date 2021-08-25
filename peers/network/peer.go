@@ -4,22 +4,24 @@ import (
 	"net"
 	"sync"
 	"time"
+
+	"github.com/DiscreteTom/rua"
 )
 
 type basicPeer struct {
 	id      int // peer id
 	c       net.Conn
-	gs      GameServer
+	gs      rua.GameServer
 	bufSize int
 	timeout int // in ms
 	lock    sync.Mutex
 	closed  bool
 	tag     string
-	logger  Logger
+	logger  rua.Logger
 }
 
 // Create a peer with a connection of `net.Conn`.
-func NewBasicPeer(c net.Conn, gs GameServer, bufSize int) *basicPeer {
+func NewBasicPeer(c net.Conn, gs rua.GameServer, bufSize int) *basicPeer {
 	return &basicPeer{
 		c:       c,
 		gs:      gs,
@@ -28,7 +30,7 @@ func NewBasicPeer(c net.Conn, gs GameServer, bufSize int) *basicPeer {
 		lock:    sync.Mutex{},
 		closed:  false,
 		tag:     "basic",
-		logger:  GetDefaultLogger(),
+		logger:  rua.GetDefaultLogger(),
 	}
 }
 
@@ -42,7 +44,7 @@ func (p *basicPeer) WithTag(t string) *basicPeer {
 	return p
 }
 
-func (p *basicPeer) WithLogger(l Logger) *basicPeer {
+func (p *basicPeer) WithLogger(l rua.Logger) *basicPeer {
 	p.logger = l
 	return p
 }
