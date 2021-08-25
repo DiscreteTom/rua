@@ -1,4 +1,4 @@
-package rua
+package network
 
 import (
 	"net"
