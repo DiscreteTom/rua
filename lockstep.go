@@ -115,7 +115,7 @@ func (s *LockstepServer) AddPeer(p Peer) {
 		peerId++
 	}
 
-	p.Activate(peerId)
+	p.SetId(peerId)
 	s.beforeAddPeerHandler(s.currentStep, p, s.peers, s)
 	s.peers[peerId] = p
 

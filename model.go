@@ -3,13 +3,13 @@ package rua
 import "time"
 
 type Peer interface {
-	Activate(peerId int)
 	Write([]byte) error
 	Close() error
 	Start() // start and wait
+	SetId(int)
 	GetId() int
-	GetTag() string
 	SetTag(string)
+	GetTag() string
 }
 
 type PeerMsg struct {

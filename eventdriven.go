@@ -66,7 +66,7 @@ func (s *EventDrivenServer) AddPeer(p Peer) {
 		peerId++
 	}
 
-	p.Activate(peerId)
+	p.SetId(peerId)
 	s.beforeAddPeerHandler(p, s.peers, s)
 	s.peers[peerId] = p
 
