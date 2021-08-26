@@ -7,81 +7,38 @@ import (
 	"github.com/DiscreteTom/rua"
 )
 
-type filePeer struct {
-	id       int // peer id
-	fp       *os.File
-	filename string
-	gs       rua.GameServer
-	lock     sync.Mutex
-	tag      string
-	logger   rua.Logger
-}
+func NewFilePeer(filename string, gs rua.GameServer) *rua.BasicPeer {
+	lock := sync.Mutex{}
+	var fp *os.File = nil
 
-func NewFilePeer(filename string, gs rua.GameServer) *filePeer {
-	return &filePeer{
-		gs:       gs,
-		fp:       nil,
-		filename: filename,
-		lock:     sync.Mutex{},
-		tag:      "file",
-		logger:   rua.GetDefaultLogger(),
-	}
-}
+	return rua.NewBasicPeer(gs).
+		WithTag("file").
+		OnWrite(func(data []byte, p *rua.BasicPeer) error {
+			// prevent concurrent write
+			lock.Lock()
+			defer lock.Unlock()
 
-func (p *filePeer) WithTag(t string) *filePeer {
-	p.tag = t
-	return p
-}
+			if _, err := fp.Write(data); err != nil {
+				return err
+			}
+			return fp.Sync() // flush to disk
+		}).
+		OnClose(func(p *rua.BasicPeer) error {
+			// wait after write finished
+			lock.Lock()
+			defer lock.Unlock()
 
-func (p *filePeer) WithLogger(l rua.Logger) *filePeer {
-	p.logger = l
-	return p
-}
+			return fp.Close() // close connection
+		}).
+		OnStart(func(p *rua.BasicPeer) {
+			lock.Lock()
+			defer lock.Unlock()
 
-func (p *filePeer) SetTag(t string) {
-	p.tag = t
-}
-
-func (p *filePeer) GetTag() string {
-	return p.tag
-}
-
-func (p *filePeer) Activate(id int) {
-	p.id = id
-}
-
-// Thread safe.
-func (p *filePeer) Write(data []byte) error {
-	// prevent concurrent write
-	p.lock.Lock()
-	defer p.lock.Unlock()
-
-	if _, err := p.fp.Write(data); err != nil {
-		return err
-	}
-	return p.fp.Sync() // flush to disk
-}
-
-func (p *filePeer) Close() error {
-	// wait after write finished
-	p.lock.Lock()
-	defer p.lock.Unlock()
-
-	return p.fp.Close() // close connection
-}
-
-func (p *filePeer) GetId() int {
-	return p.id
-}
-
-func (p *filePeer) Start() {
-	p.lock.Lock()
-	defer p.lock.Unlock()
-
-	fp, err := os.OpenFile(p.filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		p.logger.Error(err)
-		return
-	}
-	p.fp = fp
+			var err error
+			fp, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+			if err != nil {
+				p.GetLogger().Error(err)
+				return
+			}
+		})
 }
