@@ -10,6 +10,8 @@ type BasicPeer struct {
 	onStart func(p *BasicPeer)                    // lifecycle hook
 }
 
+// Create a basic peer.
+// You should call `WithTag`/`OnWrite`/`OnClose`/`OnStart` after this call.
 func NewBasicPeer(gs GameServer) *BasicPeer {
 	return &BasicPeer{
 		gs:      gs,
