@@ -102,7 +102,7 @@ func (s *LockstepServer) GetCurrentStepLength() int {
 }
 
 // Activate a peer, allocate a peerId and manage the peer's lifecycle.
-func (s *LockstepServer) AddPeer(p Peer) {
+func (s *LockstepServer) AddPeer(p Peer) int {
 	s.peerLock.Lock()
 
 	// allocate a peerId
@@ -123,6 +123,7 @@ func (s *LockstepServer) AddPeer(p Peer) {
 	go p.Start()
 
 	s.afterAddPeerHandler(s.currentStep, p, s.peers, s)
+	return peerId
 }
 
 // Close the peer and untrack it. Return err if peer not exist.

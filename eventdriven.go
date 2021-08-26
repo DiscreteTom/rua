@@ -53,7 +53,7 @@ func (s *EventDrivenServer) SetHandleKeyboardInterrupt(enable bool) *EventDriven
 }
 
 // Activate a peer, allocate a peerId and manage the peer's lifecycle.
-func (s *EventDrivenServer) AddPeer(p Peer) {
+func (s *EventDrivenServer) AddPeer(p Peer) int {
 	s.peerLock.Lock()
 
 	// allocate a peerId
@@ -74,7 +74,7 @@ func (s *EventDrivenServer) AddPeer(p Peer) {
 	go p.Start()
 
 	s.afterAddPeerHandler(p, s.peers, s)
-
+	return peerId
 }
 
 // Close the peer and untrack it. Return err if peer not exist.

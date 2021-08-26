@@ -19,7 +19,7 @@ type PeerMsg struct {
 }
 
 type GameServer interface {
-	AddPeer(Peer)
+	AddPeer(Peer) int
 	RemovePeer(peerId int) error
 	GetPeerCount() int
 	AppendPeerMsg(peerId int, d []byte)
