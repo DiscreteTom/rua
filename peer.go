@@ -77,6 +77,7 @@ func (p *BasicPeer) GetGameServer() GameServer {
 	return p.gs
 }
 
+// Thread safe.
 func (p *BasicPeer) Write(data []byte) error {
 	return p.onWrite(data, p)
 }
@@ -85,6 +86,7 @@ func (p *BasicPeer) Close() error {
 	return p.onClose(p)
 }
 
+// Start and wait.
 func (p *BasicPeer) Start() {
 	p.onStart(p)
 }
