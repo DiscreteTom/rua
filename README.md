@@ -16,7 +16,8 @@
 - 标记Peer
 - 自定义日志系统
 - Stdio交互
-- 文件输出
+- 持久化事件记录到文件，以便实现大数据分析、战斗回放
+- 流数据输出，实现大数据分析、异步外挂检测
 
 ## 安装
 
@@ -64,6 +65,7 @@ func main() {
 
 ## 更多示例
 
+- [基本示例](https://github.com/DiscreteTom/rua/tree/main/example)
 - [Websocket](https://github.com/DiscreteTom/rua/tree/main/plugin/network/websocket/_example)
 - [KCP](https://github.com/DiscreteTom/rua/tree/main/plugin/network/kcp/_example)
 
@@ -77,9 +79,9 @@ func main() {
 
 ## TODO
 
-- [ ] 流数据输入/输出（用来进行异步外挂检测）
+- [ ] 流数据输入/输出
   - [ ] Kafka
-- [ ] 持久化（用来实现大数据分析、战斗回放等）
+- [ ] 持久化
   - [ ] 数据库
 - [ ] WebSocket + TLS
 - [ ] KCP + smux
