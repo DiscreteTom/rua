@@ -9,8 +9,8 @@ import (
 func main() {
 	s := rua.NewEventDrivenServer().
 		SetHandleKeyboardInterrupt(true).
-		OnPeerMsg(func(peers map[int]rua.Peer, msg *rua.PeerMsg, s *rua.EventDrivenServer) {
-			for _, p := range peers {
+		OnPeerMsg(func(msg *rua.PeerMsg, s *rua.EventDrivenServer) {
+			for _, p := range s.GetPeers() {
 				if p.GetTag() == "file" {
 					p.Write(msg.Data)
 				}

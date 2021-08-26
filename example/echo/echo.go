@@ -8,8 +8,8 @@ import (
 func main() {
 	s := rua.NewEventDrivenServer().
 		SetHandleKeyboardInterrupt(true).
-		OnPeerMsg(func(peers map[int]rua.Peer, msg *rua.PeerMsg, s *rua.EventDrivenServer) {
-			if err := peers[msg.PeerId].Write(msg.Data); err != nil {
+		OnPeerMsg(func(msg *rua.PeerMsg, s *rua.EventDrivenServer) {
+			if err := s.GetPeer(msg.PeerId).Write(msg.Data); err != nil {
 				s.GetLogger().Error(err)
 			}
 		})
