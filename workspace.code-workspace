@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "plugin/network/websocket"
+		},
+		{
+			"path": "plugin/stream/kinesis"
 		}
 	],
 	"settings": {}
