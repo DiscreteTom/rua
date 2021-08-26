@@ -6,5 +6,7 @@ github.com/DiscreteTom/rua v0.0.0-20210824192453-1e0d88f0f211 h1:ixS7xdHBhlv8H7i
 github.com/DiscreteTom/rua v0.0.0-20210824192453-1e0d88f0f211/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
 github.com/DiscreteTom/rua v0.0.0-20210824193227-e5d0277b8907 h1:MQ/kM/Gus/zohUJCXM1K6PfMNlG9SOX6ewB7oTG7U/8=
 github.com/DiscreteTom/rua v0.0.0-20210824193227-e5d0277b8907/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
+github.com/DiscreteTom/rua v0.0.0-20210826072452-060ec44a1892 h1:Mk8wjN7ybx71LTKx87OMVpTvATdiw13R+BLPpArz4tM=
+github.com/DiscreteTom/rua v0.0.0-20210826072452-060ec44a1892/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
 github.com/gorilla/websocket v1.4.2 h1:+/TMaTYc4QFitKJxsQ7Yye35DkWvkdLcvGKqM+x0Ufc=
 github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
