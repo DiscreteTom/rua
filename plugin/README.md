@@ -1,3 +1,3 @@
 # Plugin
 
-此文件夹中保存了一些需要额外的包才能使用的组件
+This folder contains those components with requirements of third party codes.

@@ -1,3 +1,3 @@
 # Peers
 
-本目录包含了不需要额外第三方包就可以实现的基础Peer
+This folder contains peers without any third party packages.
