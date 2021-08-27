@@ -14,6 +14,10 @@ github.com/DiscreteTom/rua v0.0.0-20210825094003-55565a43885e h1:mWXtb+gMYHhWntB
 github.com/DiscreteTom/rua v0.0.0-20210825094003-55565a43885e/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
 github.com/DiscreteTom/rua v0.0.0-20210826072452-060ec44a1892 h1:Mk8wjN7ybx71LTKx87OMVpTvATdiw13R+BLPpArz4tM=
 github.com/DiscreteTom/rua v0.0.0-20210826072452-060ec44a1892/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
+github.com/DiscreteTom/rua v0.0.0-20210826074925-564dfff54ad0 h1:awLzM5RWDu+ifG7myFtCKE6i2Va3Dv0ETPjJO0HhzRk=
+github.com/DiscreteTom/rua v0.0.0-20210826074925-564dfff54ad0/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
+github.com/DiscreteTom/rua v0.0.0-20210826162108-097510204d56 h1:qykIgWDZbQ3W3Dtx/Sy7Q7dYYx/8KEaou00+Ns4HCwA=
+github.com/DiscreteTom/rua v0.0.0-20210826162108-097510204d56/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
