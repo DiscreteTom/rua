@@ -33,9 +33,12 @@ func NewWebsocketPeer(c *websocket.Conn, gs rua.GameServer) *rua.BasicPeer {
 			for {
 				_, msg, err := c.ReadMessage()
 				if err != nil {
+					// normally closed by server or client?
+					if !websocket.IsCloseError(err, websocket.CloseNoStatusReceived) {
+						p.GetLogger().Error(err)
+					}
 					if !closed {
 						// not closed by Close(), we should remove the peer
-						p.GetLogger().Error(err)
 						if err := p.GetGameServer().RemovePeer(p.GetId()); err != nil {
 							p.GetLogger().Error(err)
 						}
