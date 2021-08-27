@@ -12,8 +12,8 @@ const leaderAddr = "localhost:8080"
 func main() {
 	s := rua.NewEventDrivenServer().
 		SetHandleKeyboardInterrupt(true).
-		OnPeerMsg(func(peers map[int]rua.Peer, m *rua.PeerMsg, s *rua.EventDrivenServer) {
-			if peers[m.PeerId].GetTag() == "websocket/cascade/follower" {
+		OnPeerMsg(func(m *rua.PeerMsg, s *rua.EventDrivenServer) {
+			if s.GetPeer(m.PeerId).GetTag() == "websocket/cascade/follower" {
 				// print message from the leader
 				log.Println(m.Data)
 			}

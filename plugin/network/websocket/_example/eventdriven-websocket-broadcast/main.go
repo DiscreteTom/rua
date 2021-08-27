@@ -33,14 +33,14 @@ func main() {
 	}
 }
 
-func broadcastEventDrivenHandler(peers map[int]rua.Peer, msg *rua.PeerMsg, s *rua.EventDrivenServer) {
+func broadcastEventDrivenHandler(msg *rua.PeerMsg, s *rua.EventDrivenServer) {
 	// compact msg in one byte array
 	result := []byte{}
 	result = append(result, []byte(fmt.Sprintf("from %d:\n", msg.PeerId))...)
 	result = append(result, msg.Data...)
 	result = append(result, '\n')
 	// broadcast to everyone
-	for _, p := range peers {
+	for _, p := range s.GetPeers() {
 		go func() {
 			if err := p.Write(result); err != 0 {
 				s.GetLogger().Error(err)

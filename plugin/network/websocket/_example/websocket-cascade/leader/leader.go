@@ -12,9 +12,9 @@ const cascadeLeaderListenAddr = ":8080"
 func main() {
 	s := rua.NewEventDrivenServer().
 		SetHandleKeyboardInterrupt(true).
-		AfterAddPeer(func(newPeer rua.Peer, peers map[int]rua.Peer, s *rua.EventDrivenServer) {
+		AfterAddPeer(func(newPeer rua.Peer, s *rua.EventDrivenServer) {
 			// tell every cascade follower its leader peer id
-			for i, p := range peers {
+			for i, p := range s.GetPeers() {
 				if p.GetTag() == "websocket/cascade/leader" {
 					p.Write([]byte(fmt.Sprintf("%d", i)))
 				}

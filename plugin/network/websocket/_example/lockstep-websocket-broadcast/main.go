@@ -33,16 +33,16 @@ func main() {
 	}
 }
 
-func broadcastStepHandler(step int, peers map[int]rua.Peer, msgs []rua.PeerMsg, s *rua.LockstepServer) {
+func broadcastStepHandler(msgs []rua.PeerMsg, s *rua.LockstepServer) {
 	// compact msgs in one byte array
-	result := []byte(fmt.Sprintf("step: %d\n", step))
+	result := []byte(fmt.Sprintf("step: %d\n", s.GetCurrentStep()))
 	for _, msg := range msgs {
 		result = append(result, []byte(fmt.Sprintf("from %d:\n", msg.PeerId))...)
 		result = append(result, msg.Data...)
 		result = append(result, '\n')
 	}
 	// broadcast to everyone
-	for _, p := range peers {
+	for _, p := range s.GetPeers() {
 		go func() {
 			if err := p.Write(result); err != nil {
 				s.GetLogger().Error(err)

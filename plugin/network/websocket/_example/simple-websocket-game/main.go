@@ -33,47 +33,47 @@ func main() {
 
 	s := rua.NewEventDrivenServer().
 		SetHandleKeyboardInterrupt(true).
-		BeforeAddPeer(func(newPeer rua.Peer, peers map[int]rua.Peer, s *rua.EventDrivenServer) {
+		BeforeAddPeer(func(newPeer rua.Peer, s *rua.EventDrivenServer) {
 			// notify existing players
-			broadcastSync(peers, []byte(fmt.Sprintf(
+			broadcastSync(s.GetPeers(), []byte(fmt.Sprintf(
 				"Player[%d] added. Current player count: %d",
 				newPeer.GetId(), s.GetPeerCount()+1,
 			)))
 		}).
-		AfterAddPeer(func(newPeer rua.Peer, peers map[int]rua.Peer, s *rua.EventDrivenServer) {
+		AfterAddPeer(func(newPeer rua.Peer, s *rua.EventDrivenServer) {
 			// notify the new Peer
 			newPeer.Write([]byte(fmt.Sprintf("Current player count: %d", s.GetPeerCount())))
 			// if all players are arrived, start the game and notify all players
 			if s.GetPeerCount() == playerCount {
 				game.Started = true
-				broadcastSync(peers, []byte("Game started"))
+				broadcastSync(s.GetPeers(), []byte("Game started"))
 			}
 		}).
-		AfterRemovePeer(func(targetId int, peers map[int]rua.Peer, s *rua.EventDrivenServer) {
+		AfterRemovePeer(func(targetId int, s *rua.EventDrivenServer) {
 			if !game.Over { // players are not removed by the server
 				if s.GetPeerCount() == 0 {
 					// no player left, end the game
 					s.Stop()
 				} else {
 					// notify remaining players
-					broadcastSync(peers, []byte(fmt.Sprintf(
+					broadcastSync(s.GetPeers(), []byte(fmt.Sprintf(
 						"Player[%d] leaved. Current player count: %d",
 						targetId, s.GetPeerCount(),
 					)))
 					// not enough player, stop the game to wait for enough players
 					if game.Started {
 						game.Started = false
-						broadcastSync(peers, []byte("Game stopped"))
+						broadcastSync(s.GetPeers(), []byte("Game stopped"))
 					}
 				}
 			}
 		}).
-		OnPeerMsg(func(peers map[int]rua.Peer, msg *rua.PeerMsg, s *rua.EventDrivenServer) {
+		OnPeerMsg(func(msg *rua.PeerMsg, s *rua.EventDrivenServer) {
 			if game.Started {
-				processGameLogic(peers, msg, s, game)
+				processGameLogic(msg, s, game)
 			} else {
 				// game not started, echo an error
-				peers[msg.PeerId].Write([]byte("Game has not been started"))
+				s.GetPeer(msg.PeerId).Write([]byte("Game has not been started"))
 			}
 		})
 
@@ -102,15 +102,15 @@ func main() {
 	}
 }
 
-func processGameLogic(peers map[int]rua.Peer, msg *rua.PeerMsg, gs rua.GameServer, state *Game) {
+func processGameLogic(msg *rua.PeerMsg, gs *rua.EventDrivenServer, state *Game) {
 	// dead player can not attack
 	if state.PlayerHealth[msg.PeerId] == 0 {
-		go peers[msg.PeerId].Write([]byte("You are dead and can not attack"))
+		go gs.GetPeer(msg.PeerId).Write([]byte("You are dead and can not attack"))
 		return
 	}
 
 	// attack take effects
-	for i, p := range peers {
+	for i, p := range gs.GetPeers() {
 		if i != msg.PeerId { // not the attacker
 			if state.PlayerHealth[i] > 0 { // alive
 				state.PlayerHealth[i]--
@@ -137,7 +137,7 @@ func processGameLogic(peers map[int]rua.Peer, msg *rua.PeerMsg, gs rua.GameServe
 
 	// game end?
 	if state.AlivePlayerCount == 1 { // the attacker won
-		broadcastSync(peers, []byte(fmt.Sprintf(
+		broadcastSync(gs.GetPeers(), []byte(fmt.Sprintf(
 			"Game Over.\nPlayer[%d] won!\n",
 			msg.PeerId,
 		)))
