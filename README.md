@@ -89,7 +89,6 @@ func main() {
 
 ## TODO
 
-- [ ] WebSocket + TLS
 - [ ] KCP + smux
 
 # English
@@ -181,5 +180,4 @@ func main() {
 
 ## TODO
 
-- [ ] WebSocket + TLS
 - [ ] KCP + smux

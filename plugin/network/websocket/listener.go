@@ -17,6 +17,8 @@ type websocketListener struct {
 	guardian func(w http.ResponseWriter, r *http.Request, gs rua.GameServer) bool
 	peerTag  string
 	logger   rua.Logger
+	certFile string
+	keyFile  string
 }
 
 func NewWebsocketListener(addr string, gs rua.GameServer) *websocketListener {
@@ -27,6 +29,8 @@ func NewWebsocketListener(addr string, gs rua.GameServer) *websocketListener {
 		guardian: nil,
 		peerTag:  "websocket",
 		logger:   rua.GetDefaultLogger(),
+		certFile: "",
+		keyFile:  "",
 	}
 }
 
@@ -42,6 +46,12 @@ func (l *websocketListener) WithPath(p string) *websocketListener {
 
 func (l *websocketListener) WithPeerTag(t string) *websocketListener {
 	l.peerTag = t
+	return l
+}
+
+func (l *websocketListener) WithTLS(certFile, keyFile string) *websocketListener {
+	l.certFile = certFile
+	l.keyFile = keyFile
 	return l
 }
 
@@ -64,5 +74,10 @@ func (l *websocketListener) Start() error {
 		}
 	})
 	l.logger.Info("websocket listener is listening at", l.addr)
-	return http.ListenAndServe(l.addr, nil)
+
+	if len(l.certFile) != 0 && len(l.keyFile) != 0 {
+		return http.ListenAndServeTLS(l.addr, l.certFile, l.keyFile, nil)
+	} else {
+		return http.ListenAndServe(l.addr, nil)
+	}
 }
