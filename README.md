@@ -91,7 +91,6 @@ func main() {
 
 - [ ] WebSocket + TLS
 - [ ] KCP + smux
-- [ ] Docker
 
 # English
 
@@ -184,4 +183,3 @@ func main() {
 
 - [ ] WebSocket + TLS
 - [ ] KCP + smux
-- [ ] Docker
