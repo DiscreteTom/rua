@@ -3,7 +3,13 @@ module github.com/DiscreteTom/rua/plugin/network/kcp-smux
 go 1.17
 
 require (
-	github.com/DiscreteTom/rua v0.1.0 // indirect
+	github.com/DiscreteTom/rua v0.1.0
+	github.com/DiscreteTom/rua/plugin/network/kcp v0.2.0
+	github.com/xtaci/kcp-go/v5 v5.6.1
+	github.com/xtaci/smux v1.5.15
+)
+
+require (
 	github.com/klauspost/cpuid v1.3.1 // indirect
 	github.com/klauspost/reedsolomon v1.9.9 // indirect
 	github.com/mmcloughlin/avo v0.0.0-20200803215136-443f81d77104 // indirect
@@ -11,8 +17,6 @@ require (
 	github.com/templexxx/cpu v0.0.7 // indirect
 	github.com/templexxx/xorsimd v0.4.1 // indirect
 	github.com/tjfoc/gmsm v1.3.2 // indirect
-	github.com/xtaci/kcp-go/v5 v5.6.1 // indirect
-	github.com/xtaci/smux v1.5.15 // indirect
 	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de // indirect
 	golang.org/x/mod v0.3.0 // indirect
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
