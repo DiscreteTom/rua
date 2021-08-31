@@ -2,6 +2,7 @@ package kcp
 
 import (
 	"log"
+	"net"
 
 	"github.com/DiscreteTom/rua"
 	"github.com/DiscreteTom/rua/peers/network"
@@ -9,7 +10,7 @@ import (
 	"github.com/xtaci/kcp-go/v5"
 )
 
-type kcpListener struct {
+type KcpListener struct {
 	addr         string
 	gs           rua.GameServer
 	key          []byte
@@ -22,10 +23,11 @@ type kcpListener struct {
 	peerTag      string
 	logger       rua.Logger
 	maxAttempts  int
+	upgrader     func(c *kcp.UDPSession) (net.Conn, error)
 }
 
-func NewKcpListener(addr string, gs rua.GameServer, key []byte, bufSize int) *kcpListener {
-	return &kcpListener{
+func NewKcpListener(addr string, gs rua.GameServer, key []byte, bufSize int) *KcpListener {
+	return &KcpListener{
 		addr:         addr,
 		gs:           gs,
 		key:          key,
@@ -38,50 +40,56 @@ func NewKcpListener(addr string, gs rua.GameServer, key []byte, bufSize int) *kc
 		peerTag:      "kcp",
 		logger:       rua.GetDefaultLogger(),
 		maxAttempts:  10,
+		upgrader:     func(c *kcp.UDPSession) (net.Conn, error) { return c, nil },
 	}
 }
 
-func (l *kcpListener) WithLogger(logger rua.Logger) *kcpListener {
+func (l *KcpListener) WithLogger(logger rua.Logger) *KcpListener {
 	l.logger = logger
 	return l
 }
 
-func (l *kcpListener) WithPeerTag(t string) *kcpListener {
+func (l *KcpListener) WithPeerTag(t string) *KcpListener {
 	l.peerTag = t
 	return l
 }
 
-func (l *kcpListener) WithDataShards(shards int) *kcpListener {
+func (l *KcpListener) WithDataShards(shards int) *KcpListener {
 	l.dataShards = shards
 	return l
 }
 
-func (l *kcpListener) WithParityShards(shards int) *kcpListener {
+func (l *KcpListener) WithParityShards(shards int) *KcpListener {
 	l.parityShards = shards
 	return l
 }
 
-func (l *kcpListener) WithCrypt(crypt string) *kcpListener {
+func (l *KcpListener) WithCrypt(crypt string) *KcpListener {
 	l.crypt = crypt
 	return l
 }
 
-func (l *kcpListener) WithPeerTimeout(t int) *kcpListener {
+func (l *KcpListener) WithPeerTimeout(t int) *KcpListener {
 	l.peerTimeout = t
 	return l
 }
 
-func (l *kcpListener) WithGuardian(g func(c *kcp.UDPSession, gs rua.GameServer) bool) *kcpListener {
+func (l *KcpListener) WithGuardian(g func(c *kcp.UDPSession, gs rua.GameServer) bool) *KcpListener {
 	l.guardian = g
 	return l
 }
 
-func (l *kcpListener) WithMaxAttempts(count int) *kcpListener {
+func (l *KcpListener) WithMaxAttempts(count int) *KcpListener {
 	l.maxAttempts = count
 	return l
 }
 
-func (l *kcpListener) Start() error {
+func (l *KcpListener) WithUpgrader(f func(c *kcp.UDPSession) (net.Conn, error)) *KcpListener {
+	l.upgrader = f
+	return l
+}
+
+func (l *KcpListener) Start() error {
 	l.logger.Infof("kcp listener is listening at %s", l.addr)
 	block, err := blockCrypt(l.crypt, l.key)
 	if err != nil {
@@ -105,7 +113,16 @@ func (l *kcpListener) Start() error {
 		} else { // err == nil
 			attempts = 0
 			if l.guardian == nil || l.guardian(c, l.gs) {
-				l.gs.AddPeer(network.NewNetPeer(c, l.gs, l.bufSize, l.peerTimeout).WithLogger(l.logger).WithTag(l.peerTag))
+				con, err := l.upgrader(c)
+				if err != nil {
+					l.logger.Error(err)
+				} else {
+					l.gs.AddPeer(
+						network.NewNetPeer(con, l.gs, l.bufSize, l.peerTimeout).
+							WithLogger(l.logger).
+							WithTag(l.peerTag),
+					)
+				}
 			}
 		}
 	}
