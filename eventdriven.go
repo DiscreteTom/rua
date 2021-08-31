@@ -84,7 +84,7 @@ func (s *EventDrivenServer) RemovePeer(peerId int) (err error) {
 	s.peerLock.Lock()
 	if peer, ok := s.peers[peerId]; ok {
 		if err := peer.Close(); err != nil {
-			s.logger.Error(err)
+			s.logger.Error("rua.EventDrivenServer.RemovePeer:", err)
 		}
 		delete(s.peers, peerId)
 	} else {
