@@ -11,6 +11,9 @@
 		},
 		{
 			"path": "plugin/stream/kinesis"
+		},
+		{
+			"path": "plugin/network/kcp-smux"
 		}
 	],
 	"settings": {}

@@ -37,7 +37,7 @@ func NewFilePeer(filename string, gs rua.GameServer) *rua.BasicPeer {
 			var err error
 			fp, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 			if err != nil {
-				p.GetLogger().Error(err)
+				p.GetLogger().Error("rua.FilePeer.OpenFile:", err)
 				return
 			}
 		})
