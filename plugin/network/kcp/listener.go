@@ -11,36 +11,38 @@ import (
 )
 
 type KcpListener struct {
-	addr         string
-	gs           rua.GameServer
-	key          []byte
-	bufSize      int
-	dataShards   int
-	parityShards int
-	crypt        string
-	peerTimeout  int // in ms
-	guardian     func(c *kcp.UDPSession, gs rua.GameServer) bool
-	peerTag      string
-	logger       rua.Logger
-	maxAttempts  int
-	upgrader     func(c *kcp.UDPSession) (net.Conn, error)
+	addr             string
+	gs               rua.GameServer
+	key              []byte
+	bufSize          int
+	dataShards       int
+	parityShards     int
+	crypt            string
+	peerReadTimeout  int // in ms
+	peerWriteTimeout int // in ms
+	guardian         func(c *kcp.UDPSession, gs rua.GameServer) bool
+	peerTag          string
+	logger           rua.Logger
+	maxAttempts      int
+	upgrader         func(c *kcp.UDPSession) (net.Conn, error)
 }
 
 func NewKcpListener(addr string, gs rua.GameServer, key []byte, bufSize int) *KcpListener {
 	return &KcpListener{
-		addr:         addr,
-		gs:           gs,
-		key:          key,
-		bufSize:      bufSize,
-		dataShards:   10,
-		parityShards: 3,
-		crypt:        "aes",
-		peerTimeout:  1000,
-		guardian:     nil,
-		peerTag:      "kcp",
-		logger:       rua.GetDefaultLogger(),
-		maxAttempts:  10,
-		upgrader:     func(c *kcp.UDPSession) (net.Conn, error) { return c, nil },
+		addr:             addr,
+		gs:               gs,
+		key:              key,
+		bufSize:          bufSize,
+		dataShards:       10,
+		parityShards:     3,
+		crypt:            "aes",
+		peerReadTimeout:  1000,
+		peerWriteTimeout: 1000,
+		guardian:         nil,
+		peerTag:          "kcp",
+		logger:           rua.GetDefaultLogger(),
+		maxAttempts:      10,
+		upgrader:         func(c *kcp.UDPSession) (net.Conn, error) { return c, nil },
 	}
 }
 
@@ -69,8 +71,12 @@ func (l *KcpListener) WithCrypt(crypt string) *KcpListener {
 	return l
 }
 
-func (l *KcpListener) WithPeerTimeout(t int) *KcpListener {
-	l.peerTimeout = t
+func (l *KcpListener) WithPeerReadTimeout(t int) *KcpListener {
+	l.peerReadTimeout = t
+	return l
+}
+func (l *KcpListener) WithPeerWriteTimeout(t int) *KcpListener {
+	l.peerWriteTimeout = t
 	return l
 }
 
@@ -118,7 +124,7 @@ func (l *KcpListener) Start() error {
 					l.logger.Error(err)
 				} else {
 					l.gs.AddPeer(
-						network.NewNetPeer(con, l.gs, l.bufSize, l.peerTimeout).
+						network.NewNetPeer(con, l.gs, l.bufSize, l.peerReadTimeout, l.peerWriteTimeout).
 							WithLogger(l.logger).
 							WithTag(l.peerTag),
 					)

@@ -1,5 +1,7 @@
 github.com/DiscreteTom/rua v0.1.0 h1:luRLe6Xc2DO2b+Ahl2qsYt9kfSGkf2zvwCwO3njzC1M=
 github.com/DiscreteTom/rua v0.1.0/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
+github.com/DiscreteTom/rua v0.2.0 h1:9YyYSFrSOhSAB+Odo3/xo6j1fRnATsmEOG3hOIZHNs4=
+github.com/DiscreteTom/rua v0.2.0/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/klauspost/cpuid v1.2.4/go.mod h1:Pj4uuM528wm8OyEC2QMXAi2YiTZ96dNQPGgoMS4s3ek=
