@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    if: ${{ !endsWith(github.event.push.ref, "0") }} # this release is a new minor version
+    if: ${{ !endsWith(github.event.push.ref, '0') }} # this release is a new minor version
     runs-on: ubuntu-latest
     steps:
       # setup env
