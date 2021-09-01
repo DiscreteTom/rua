@@ -22,7 +22,7 @@ jobs:
         run: |
           git config user.name 'DiscreteTom'
           git config user.email 'discrete_tom@outlook.com'
-          git checkout -b auto-upgrade-plugins-${{ TAG }}
+          git checkout -b auto-upgrade-plugins-${TAG}
 
       # upgrade plugins
       - name: upgrade kcp plugin
@@ -54,5 +54,5 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
         with:
-          branch: auto-upgrade-plugins-${{ TAG }}
+          branch: auto-upgrade-plugins-${{ env.TAG }}
           token: PersonalAccessToken
