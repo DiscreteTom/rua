@@ -1,7 +1,6 @@
 name: Upgrade Plugins
 on:
   push:
-    branches: main
     tags:
       - v*.*.* # a new version of rua is released
 
@@ -17,7 +16,8 @@ jobs:
           go-version: "^1.17"
       - name: retrieve tag
         run: |
-          echo "TAG=${GITHUB_REF#refs/*/}" >> tee $GITHUB_ENV
+          TAG=`git tag -l "v*.*.*" --sort=-version:refname | head -n 1`
+          echo "TAG=${TAG}" >> tee $GITHUB_ENV
       - name: setup git
         run: |
           git config user.name 'DiscreteTom'
