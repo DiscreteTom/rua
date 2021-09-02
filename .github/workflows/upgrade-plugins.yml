@@ -1,0 +1,51 @@
+# Run this workflow if this version of rua is backward-compatible.
+
+name: Upgrade Plugins
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # setup env
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: "^1.17"
+      - name: retrieve tag
+        run: |
+          TAG=`git tag -l "v*.*.*" --sort=-version:refname | head -n 1`
+          echo "TAG=${TAG}" >> tee $GITHUB_ENV
+      - name: setup git
+        run: |
+          git config user.name 'DiscreteTom'
+          git config user.email 'discrete_tom@outlook.com'
+          git checkout -b auto-upgrade-plugins-for-${TAG}
+
+      # upgrade plugins
+      - name: upgrade plugins
+        run: |
+          for PLUGIN_PATH in network/kcp network/websocket stream/kinesis
+          do
+            cd $PLUGIN_PATH
+            go get github.com/DiscreteTom/rua@${TAG}
+            go mod tidy
+            cd -
+          done
+      - name: setup git commit & tags
+        run: |
+          git add *
+          git commit -m "auto upgrade plugins"
+          for PLUGIN_NAME in plugin/network/kcp plugin/network/websocket plugin/stream/kinesis
+          do
+            OLD_VERSION=`git tag -l "${PLUGIN_NAME}/*" --sort=-version:refname | head -n 1`
+            NEW_VERSION=`echo $OLD_VERSION | awk -F. -v OFS=. '{$NF++;print}'`
+            git tag -a ${NEW_VERSION}
+          done
+
+      # create a pull request
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          branch: auto-upgrade-plugins-${{ env.TAG }}
+          token: PersonalAccessToken
