@@ -47,20 +47,21 @@ func NewNetPeer(c net.Conn, gs rua.GameServer, bufSize int, readTimeout int, wri
 				}
 				n, err := c.Read(buf)
 				if err != nil {
-					if closed {
-						// closed by peer.Close(), not need to remove peer from server
+					if !closed { // not closed by peer.Close(), need to remove peer from server
+						if err.Error() == "timeout" {
+							p.GetLogger().Warnf("rua.NetPeer: peer[%d] timeout", p.GetId())
+						} else {
+							p.GetLogger().Error("rua.NetPeer.OnStart:", err)
+						}
+
+						if err := gs.RemovePeer(p.GetId()); err != nil {
+							p.GetLogger().Error("rua.NetPeer.RemovePeer:", err)
+						}
 						break
 					}
-					if err.Error() == "timeout" {
-						p.GetLogger().Infof("rua.NetPeer: peer[%d] timeout", p.GetId())
-					}
-					if err := gs.RemovePeer(p.GetId()); err != nil {
-						p.GetLogger().Error("rua.NetPeer.RemovePeer:", err)
-					}
-					break
+				} else {
+					gs.AppendPeerMsg(p.GetId(), buf[:n])
 				}
-
-				gs.AppendPeerMsg(p.GetId(), buf[:n])
 			}
 		})
 }
