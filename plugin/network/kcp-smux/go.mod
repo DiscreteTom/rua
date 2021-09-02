@@ -3,8 +3,8 @@ module github.com/DiscreteTom/rua/plugin/network/kcp-smux
 go 1.17
 
 require (
-	github.com/DiscreteTom/rua v0.2.0
-	github.com/DiscreteTom/rua/plugin/network/kcp v0.3.1
+	github.com/DiscreteTom/rua v0.2.1
+	github.com/DiscreteTom/rua/plugin/network/kcp v0.3.2
 	github.com/xtaci/kcp-go/v5 v5.6.1
 	github.com/xtaci/smux v1.5.15
 )
