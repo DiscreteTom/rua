@@ -16,7 +16,6 @@ jobs:
           fetch-depth: 0 # fetch all branches and tags
       - name: retrieve tag
         run: |
-          pwd
           TAG=`git tag -l "v*.*.*" --sort=-version:refname | head -n 1`
           echo "TAG=${TAG}" | tee -a $GITHUB_ENV
       - name: setup git
