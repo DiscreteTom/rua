@@ -21,7 +21,7 @@ jobs:
       - name: retrieve tag
         run: |
           TAG=`git tag -l "v*.*.*" --sort=-version:refname | head -n 1`
-          echo "TAG=${TAG}" >> tee $GITHUB_ENV
+          echo "TAG=${TAG}" >> tee -a $GITHUB_ENV
       - name: setup git
         run: |
           echo ${TAG}
