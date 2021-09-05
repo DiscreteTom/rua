@@ -33,7 +33,7 @@ jobs:
         run: |
           for PLUGIN_PATH in network/kcp network/websocket stream/kinesis
           do
-            cd $PLUGIN_PATH
+            cd plugin/${PLUGIN_PATH}
             go get github.com/DiscreteTom/rua@${TAG}
             go mod tidy
             cd -
