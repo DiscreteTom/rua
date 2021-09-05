@@ -30,9 +30,13 @@ jobs:
         run: |
           for PLUGIN_PATH in network/kcp network/websocket stream/kinesis
           do
+            echo "Upgrading ${PLUGIN_PATH}"
             cd plugin/${PLUGIN_PATH}
+            set -x
             go get github.com/DiscreteTom/rua@${TAG}
             go mod tidy
+            set +x
+            echo
             cd -
           done
       - name: setup git commit & tags
