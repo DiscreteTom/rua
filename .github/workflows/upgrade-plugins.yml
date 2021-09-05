@@ -24,8 +24,6 @@ jobs:
           echo "TAG=${TAG}" | tee -a $GITHUB_ENV
       - name: setup git
         run: |
-          echo ${TAG}
-          echo ${{ env.TAG }}
           git config user.name 'DiscreteTom'
           git config user.email 'discrete_tom@outlook.com'
           git checkout -b auto-upgrade-plugins-for-${TAG}
