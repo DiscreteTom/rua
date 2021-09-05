@@ -47,7 +47,7 @@ jobs:
           do
             OLD_VERSION=`git tag -l "${PLUGIN_NAME}/*" --sort=-version:refname | head -n 1`
             NEW_VERSION=`echo $OLD_VERSION | awk -F. -v OFS=. '{$NF++;print}'`
-            git tag -a ${NEW_VERSION}
+            git tag -a ${NEW_VERSION} -m "auto upgrade"
           done
 
       # create a pull request
