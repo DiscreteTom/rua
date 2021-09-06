@@ -51,4 +51,4 @@ jobs:
 
       # push to origin
       - run: |
-          git push -u origin --tags
+          git push -u origin auto-upgrade-plugins-for-${TAG} --tags
