@@ -1,0 +1,46 @@
+# Run this workflow if this version of rua is backward-compatible.
+
+name: Upgrade kcp-smux plugin
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # setup env
+      - uses: actions/setup-go@v2
+        with:
+          go-version: "^1.17"
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # fetch all branches and tags
+      - name: retrieve tag
+        run: |
+          KCP_TAG=`git tag -l "plugin/network/kcp/v*.*.*" --sort=-version:refname | head -n 1`
+          echo "KCP_TAG=${KCP_TAG}" | tee -a $GITHUB_ENV
+          KCP_VERSION=`echo ${KCP_TAG} | sed 's:plugin/network/kcp/::g'`
+          echo "KCP_VERSION=${KCP_VERSION}" | tee -a $GITHUB_ENV
+      - name: setup git
+        run: |
+          git config user.name 'DiscreteTom'
+          git config user.email 'discrete_tom@outlook.com'
+          git checkout -b auto-upgrade-kcp-smux-for-${KCP_TAG}
+
+      # upgrade plugins
+      - name: upgrade kcp-smux
+        run: |
+          cd plugin/network/kcp-smux
+          set -x
+          go get github.com/DiscreteTom/rua/plugin/network/kcp/@${KCP_VERSION}
+          go mod tidy
+      - name: setup git commit & tags
+        run: |
+          git add *
+          git commit -m "auto upgrade plugins"
+          OLD_VERSION=`git tag -l "plugin/network/kcp-smux/*" --sort=-version:refname | head -n 1`
+          NEW_VERSION=`echo $OLD_VERSION | awk -F. -v OFS=. '{$NF++;print}'`
+          git tag -a ${NEW_VERSION} -m "auto upgrade"
+
+      # push to origin
+      - run: |
+          git push -u origin auto-upgrade-kcp-smux-for-${KCP_TAG} --tags
