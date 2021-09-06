@@ -44,9 +44,11 @@ jobs:
           git commit -m "auto upgrade plugins"
           for PLUGIN_NAME in plugin/network/kcp plugin/network/websocket plugin/stream/kinesis
           do
-            OLD_VERSION=`git tag -l "${PLUGIN_NAME}/*" --sort=-version:refname | head -n 1`
-            NEW_VERSION=`echo $OLD_VERSION | awk -F. -v OFS=. '{$NF++;print}'`
-            git tag -a ${NEW_VERSION} -m "auto upgrade"
+            if [[ `git diff --exit-code ${PLUGIN_NAME}/go.mod` ]]; then
+              OLD_VERSION=`git tag -l "${PLUGIN_NAME}/*" --sort=-version:refname | head -n 1`
+              NEW_VERSION=`echo $OLD_VERSION | awk -F. -v OFS=. '{$NF++;print}'`
+              git tag -a ${NEW_VERSION} -m "auto upgrade"
+            fi
           done
 
       # push to origin
