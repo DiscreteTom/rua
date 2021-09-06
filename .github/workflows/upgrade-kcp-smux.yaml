@@ -1,7 +1,12 @@
 # Run this workflow if this version of rua is backward-compatible.
 
 name: Upgrade kcp-smux plugin
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Upgrade Plugins"]
+    types:
+      - completed
 
 jobs:
   build:
