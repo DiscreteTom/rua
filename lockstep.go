@@ -29,7 +29,7 @@ type LockstepServer struct {
 	logger                   Logger
 }
 
-func NewLockStepServer() *LockstepServer {
+func NewLockstepServer() *LockstepServer {
 	return &LockstepServer{
 		stop:                     make(chan bool),
 		handleKeyboardInterrupt:  false,
