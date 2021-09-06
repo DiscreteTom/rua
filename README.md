@@ -1,5 +1,8 @@
 # Rua!
 
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/DiscreteTom/rua?style=flat-square)
+![GitHub](https://img.shields.io/github/license/DiscreteTom/rua?style=flat-square)
+
 > [English README](#english)
 
 一个简单的、高度可定制化的游戏服务器框架，基于[Go语言](https://golang.org/)编写。
