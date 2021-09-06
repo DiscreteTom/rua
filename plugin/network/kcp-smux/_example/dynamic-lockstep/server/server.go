@@ -29,10 +29,10 @@ func main() {
 
 	select {
 	case err := <-errChan:
-		s.GetLogger().Error(err)
+		s.GetLogger().Error("server.KcpSmuxListener:", err)
 	case errs := <-serverErrsChan:
 		if len(errs) != 0 {
-			s.GetLogger().Error(errs)
+			s.GetLogger().Error("server.LockStepServer:", errs)
 		}
 		break
 	}
@@ -56,7 +56,7 @@ func dynamicStepHandler(msgs []rua.PeerMsg, s *rua.LockstepServer) {
 	binary.LittleEndian.PutUint64(buf, uint64(currentTime))
 	for _, p := range s.GetPeers() {
 		if err := p.Write(buf); err != nil {
-			s.GetLogger().Error(err)
+			s.GetLogger().Error("server.Broadcast.Write:", err)
 		}
 	}
 }
