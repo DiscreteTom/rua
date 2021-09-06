@@ -1,5 +1,5 @@
-github.com/DiscreteTom/rua v0.2.3 h1:Avz6ApxQZoVsfI/mCCKzaA6OLipUbLcShY57fFuZq1s=
-github.com/DiscreteTom/rua v0.2.3/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
+github.com/DiscreteTom/rua v0.3.0 h1:W4UCEb5UOk5s6Hu5AY34lkP67NO0WeDaEKg8MZ9DaCk=
+github.com/DiscreteTom/rua v0.3.0/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
 github.com/aws/aws-sdk-go-v2 v1.8.1 h1:GcFgQl7MsBygmeeqXyV1ivrTEmsVz/rdFJaTcltG9ag=
 github.com/aws/aws-sdk-go-v2 v1.8.1/go.mod h1:xEFuWz+3TYdlPRuo+CqATbeDWIWyaT5uAPwPaWtgse0=
 github.com/aws/aws-sdk-go-v2/config v1.6.1 h1:qrZINaORyr78syO1zfD4l7r4tZjy0Z1l0sy4jiysyOM=
