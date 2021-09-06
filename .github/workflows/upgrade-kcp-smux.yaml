@@ -36,7 +36,7 @@ jobs:
       - name: setup git commit & tags
         run: |
           git add *
-          git commit -m "auto upgrade plugins"
+          git commit -m "auto upgrade plugin kcp-smux"
           OLD_VERSION=`git tag -l "plugin/network/kcp-smux/*" --sort=-version:refname | head -n 1`
           NEW_VERSION=`echo $OLD_VERSION | awk -F. -v OFS=. '{$NF++;print}'`
           git tag -a ${NEW_VERSION} -m "auto upgrade"
