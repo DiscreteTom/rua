@@ -27,6 +27,7 @@
   - 自定义Peer，只要实现了[`rua.Peer`](https://github.com/DiscreteTom/rua/blob/main/model.go)接口即可
 - 事件驱动编程风格
 - 级联架构
+  - 使用单独的服务器实现观战、广播、持久化、流输出
 - 标记Peer
 
 ## 安装
@@ -114,6 +115,7 @@ Rua is a simple, highly customizable game server framework written with [golang]
   - Any custom peer implements the interface [`rua.Peer`](https://github.com/DiscreteTom/rua/blob/main/model.go).
 - Event-driven style coding.
 - Cascade architecture.
+  - You can use a dedicated game server to realize watcher mode, video streaming, persistence and stream output.
 - Peer tagging.
 
 ## Installation
