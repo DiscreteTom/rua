@@ -49,9 +49,6 @@ jobs:
             git tag -a ${NEW_VERSION} -m "auto upgrade"
           done
 
-      # create a pull request
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v3
-        with:
-          branch: auto-upgrade-plugins-${{ env.TAG }}
-          token: PersonalAccessToken
+      # push to origin
+      - run: |
+          git push origin --tags
