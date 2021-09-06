@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/DiscreteTom/rua v0.2.2
-	github.com/DiscreteTom/rua/plugin/network/kcp v0.3.3
+	github.com/DiscreteTom/rua/plugin/network/kcp v0.3.4
 	github.com/xtaci/kcp-go/v5 v5.6.1
 	github.com/xtaci/smux v1.5.15
 )
