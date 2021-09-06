@@ -1,6 +1,7 @@
 package network
 
 import (
+	"errors"
 	"net"
 	"sync"
 	"time"
@@ -21,13 +22,16 @@ func NewNetPeer(c net.Conn, gs rua.GameServer, bufSize int, readTimeout int, wri
 			lock.Lock()
 			defer lock.Unlock()
 
-			if writeTimeout != 0 {
-				if err := c.SetWriteDeadline(time.Now().Add(time.Duration(readTimeout) * time.Millisecond)); err != nil {
-					p.GetLogger().Error("rua.NetPeer.SetWriteDeadline:", err)
+			if !closed {
+				if writeTimeout != 0 {
+					if err := c.SetWriteDeadline(time.Now().Add(time.Duration(readTimeout) * time.Millisecond)); err != nil {
+						p.GetLogger().Error("rua.NetPeer.SetWriteDeadline:", err)
+					}
 				}
+				_, err := c.Write(data)
+				return err
 			}
-			_, err := c.Write(data)
-			return err
+			return errors.New("peer already closed")
 		}).
 		OnClose(func(p *rua.BasicPeer) error {
 			// wait after write finished
