@@ -5,7 +5,7 @@
 
 > [English README](#english)
 
-一个简单的、高度可定制化的游戏服务器框架，基于[Go语言](https://golang.org/)编写。
+一个高度可定制化、扩展性强的游戏服务器框架，基于[Go语言](https://golang.org/)编写。
 
 ![architecture](./img/architecture.png)
 
@@ -93,7 +93,7 @@ func main() {
 
 # English
 
-Rua is a simple, highly customizable game server framework written with [golang](https://golang.org/).
+Rua is a highly customizable & scalable game server framework written with [golang](https://golang.org/).
 
 ![architecture](./img/architecture.png)
 
