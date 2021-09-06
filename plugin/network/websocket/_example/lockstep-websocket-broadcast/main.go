@@ -9,7 +9,7 @@ import (
 
 func main() {
 	errChan := make(chan error)
-	s := rua.NewLockStepServer().
+	s := rua.NewLockstepServer().
 		SetHandleKeyboardInterrupt(true).
 		OnStep(broadcastStepHandler)
 

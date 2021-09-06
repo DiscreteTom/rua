@@ -13,7 +13,7 @@ import (
 
 func main() {
 	errChan := make(chan error)
-	s := rua.NewLockStepServer().
+	s := rua.NewLockstepServer().
 		SetHandleKeyboardInterrupt(true).
 		OnStep(dynamicStepHandler)
 
@@ -32,7 +32,7 @@ func main() {
 		s.GetLogger().Error("server.KcpSmuxListener:", err)
 	case errs := <-serverErrsChan:
 		if len(errs) != 0 {
-			s.GetLogger().Error("server.LockStepServer:", errs)
+			s.GetLogger().Error("server.LockstepServer:", errs)
 		}
 		break
 	}
