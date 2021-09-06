@@ -51,4 +51,4 @@ jobs:
 
       # push to origin
       - run: |
-          git push origin --tags
+          git push -u origin --tags
