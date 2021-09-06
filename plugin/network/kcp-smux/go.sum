@@ -1,7 +1,7 @@
-github.com/DiscreteTom/rua v0.2.3 h1:Avz6ApxQZoVsfI/mCCKzaA6OLipUbLcShY57fFuZq1s=
-github.com/DiscreteTom/rua v0.2.3/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
-github.com/DiscreteTom/rua/plugin/network/kcp v0.3.5 h1:KYTNwW6GLy1aHhtMdIBVSL4kGsO0YbQJyo/eHjAyYo8=
-github.com/DiscreteTom/rua/plugin/network/kcp v0.3.5/go.mod h1:uxGtrwpCoRjHJsd0ervS29lcauC7ERrirR+Odn8MyTs=
+github.com/DiscreteTom/rua v0.3.0 h1:W4UCEb5UOk5s6Hu5AY34lkP67NO0WeDaEKg8MZ9DaCk=
+github.com/DiscreteTom/rua v0.3.0/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
+github.com/DiscreteTom/rua/plugin/network/kcp v0.3.6 h1:B3+WNiFiMyQgVEcTKroTcf4wd74owTqaI/K4mOj0NsU=
+github.com/DiscreteTom/rua/plugin/network/kcp v0.3.6/go.mod h1:dkPnoqRJHlQqCUk3TDHUQLEVB55gSEL+yToWogL6l3U=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/klauspost/cpuid v1.2.4/go.mod h1:Pj4uuM528wm8OyEC2QMXAi2YiTZ96dNQPGgoMS4s3ek=
