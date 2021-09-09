@@ -12,11 +12,11 @@ type BasicPeer struct {
 	onStart func(p *BasicPeer)                    // lifecycle hook
 }
 
-type PeerOption func(*BasicPeer) error
+type BasicPeerOption func(*BasicPeer) error
 
 // Create a basic peer.
 // Optional params: peer.Tag(), peer.Logger(), peer.OnWrite(), peer.OnClose(), peer.OnStart()
-func NewBasicPeer(gs rua.GameServer, options ...PeerOption) (*BasicPeer, error) {
+func NewBasicPeer(gs rua.GameServer, options ...BasicPeerOption) (*BasicPeer, error) {
 	p := &BasicPeer{
 		gs:      gs,
 		tag:     "basic",
@@ -33,14 +33,14 @@ func NewBasicPeer(gs rua.GameServer, options ...PeerOption) (*BasicPeer, error) 
 	return p, nil
 }
 
-func Tag(t string) PeerOption {
+func Tag(t string) BasicPeerOption {
 	return func(p *BasicPeer) error {
 		p.tag = t
 		return nil
 	}
 }
 
-func Logger(l rua.Logger) PeerOption {
+func Logger(l rua.Logger) BasicPeerOption {
 	return func(p *BasicPeer) error {
 		p.logger = l
 		return nil
@@ -49,7 +49,7 @@ func Logger(l rua.Logger) PeerOption {
 
 // This should only be called when initializing a peer.
 // Available options: peer.Tag(), peer.Logger(), peer.OnWrite(), peer.OnClose(), peer.OnStart()
-func (p *BasicPeer) With(options ...PeerOption) error {
+func (p *BasicPeer) With(options ...BasicPeerOption) error {
 	for _, option := range options {
 		if err := option(p); err != nil {
 			return err
@@ -59,7 +59,7 @@ func (p *BasicPeer) With(options ...PeerOption) error {
 }
 
 // This hook may be triggered concurrently
-func OnWrite(f func(data []byte, p *BasicPeer) error) PeerOption {
+func OnWrite(f func(data []byte, p *BasicPeer) error) BasicPeerOption {
 	return func(p *BasicPeer) error {
 		p.onWrite = f
 		return nil
@@ -67,7 +67,7 @@ func OnWrite(f func(data []byte, p *BasicPeer) error) PeerOption {
 }
 
 // This hook may be triggered concurrently
-func OnClose(f func(p *BasicPeer) error) PeerOption {
+func OnClose(f func(p *BasicPeer) error) BasicPeerOption {
 	return func(p *BasicPeer) error {
 		p.onClose = f
 		return nil
@@ -75,7 +75,7 @@ func OnClose(f func(p *BasicPeer) error) PeerOption {
 }
 
 // This hook may NOT be triggered concurrently
-func OnStart(f func(p *BasicPeer)) PeerOption {
+func OnStart(f func(p *BasicPeer)) BasicPeerOption {
 	return func(p *BasicPeer) error {
 		p.onStart = f
 		return nil
