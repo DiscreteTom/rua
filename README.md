@@ -91,6 +91,8 @@ func main() {
   - `rua.SetDefaultLogger(logrus.New())`
 - 您也可以使用`rua.NewBasicLogger`、`rua.NewBasicSimpleLogger`这两个helper函数，快速构建自定义的logger
 
+## [更新日志](https://github.com/DiscreteTom/rua/blob/main/CHANGELOG.md)
+
 # English
 
 Rua is a highly customizable & scalable game server framework written with [golang](https://golang.org/).
@@ -178,3 +180,5 @@ func main() {
 - You can also use your favorite logger like logrus as long as it implements the interface `rua.Logger`.
   - `rua.SetDefaultLogger(logrus.New())`
 - You can use these two helper function `rua.NewBasicLogger` & `rua.NewBasicSimpleLogger` to build your own logger quickly.
+
+## [Change Log](https://github.com/DiscreteTom/rua/blob/main/CHANGELOG.md)
