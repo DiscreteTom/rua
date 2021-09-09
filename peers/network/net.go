@@ -12,30 +12,38 @@ import (
 
 type NetPeer struct {
 	peer.BasicPeer
-	lock   *sync.Mutex
-	closed bool
+	lock         *sync.Mutex
+	closed       bool
+	bufSize      int
+	readTimeout  int
+	writeTimeout int
 }
+
+type NetPeerOption func(*NetPeer) error
 
 // Create a peer with a connection of `net.Conn`.
 // If `timeout` == 0 (in ms), there is no timeout.
-func NewNetPeer(c net.Conn, gs rua.GameServer, bufSize int, readTimeout int, writeTimeout int) (*NetPeer, error) {
+func NewNetPeer(c net.Conn, gs rua.GameServer, options ...NetPeerOption) (*NetPeer, error) {
 	p := &NetPeer{
-		lock:   &sync.Mutex{},
-		closed: false,
+		lock:         &sync.Mutex{},
+		closed:       false,
+		bufSize:      4096,
+		readTimeout:  0,
+		writeTimeout: 0,
 	}
 
 	bp, err := peer.NewBasicPeer(
 		gs,
 		peer.Tag("net"),
-		peer.OnWrite(func(data []byte, bp *peer.BasicPeer) error {
+		peer.OnWrite(func(data []byte, _ *peer.BasicPeer) error {
 			// prevent concurrent write
 			p.lock.Lock()
 			defer p.lock.Unlock()
 
 			if !p.closed {
-				if writeTimeout != 0 {
-					if err := c.SetWriteDeadline(time.Now().Add(time.Duration(readTimeout) * time.Millisecond)); err != nil {
-						bp.GetLogger().Error("rua.NetPeer.SetWriteDeadline:", err)
+				if p.writeTimeout != 0 {
+					if err := c.SetWriteDeadline(time.Now().Add(time.Duration(p.readTimeout) * time.Millisecond)); err != nil {
+						p.GetLogger().Error("rua.NetPeer.SetWriteDeadline:", err)
 					}
 				}
 				_, err := c.Write(data)
@@ -43,7 +51,7 @@ func NewNetPeer(c net.Conn, gs rua.GameServer, bufSize int, readTimeout int, wri
 			}
 			return errors.New("peer already closed")
 		}),
-		peer.OnClose(func(bp *peer.BasicPeer) error {
+		peer.OnClose(func(_ *peer.BasicPeer) error {
 			// wait after write finished
 			p.lock.Lock()
 			defer p.lock.Unlock()
@@ -51,11 +59,11 @@ func NewNetPeer(c net.Conn, gs rua.GameServer, bufSize int, readTimeout int, wri
 			p.closed = true
 			return c.Close() // close connection
 		}),
-		peer.OnStart(func(bp *peer.BasicPeer) {
+		peer.OnStart(func(_ *peer.BasicPeer) {
 			for {
-				buf := make([]byte, bufSize)
-				if readTimeout != 0 {
-					if err := c.SetReadDeadline(time.Now().Add(time.Duration(readTimeout) * time.Millisecond)); err != nil {
+				buf := make([]byte, p.bufSize)
+				if p.readTimeout != 0 {
+					if err := c.SetReadDeadline(time.Now().Add(time.Duration(p.readTimeout) * time.Millisecond)); err != nil {
 						p.GetLogger().Error("rua.NetPeer.SetReadDeadline:", err)
 					}
 				}
@@ -85,4 +93,34 @@ func NewNetPeer(c net.Conn, gs rua.GameServer, bufSize int, readTimeout int, wri
 
 	p.BasicPeer = *bp
 	return p, nil
+}
+
+func BufSize(n int) NetPeerOption {
+	return func(p *NetPeer) error {
+		p.bufSize = n
+		return nil
+	}
+}
+
+func ReadTimeout(ms int) NetPeerOption {
+	return func(p *NetPeer) error {
+		p.readTimeout = ms
+		return nil
+	}
+}
+
+func WriteTimeout(ms int) NetPeerOption {
+	return func(p *NetPeer) error {
+		p.writeTimeout = ms
+		return nil
+	}
+}
+
+// Set the readTimeout and writeTimeout to the specified ms.
+func Timeout(ms int) NetPeerOption {
+	return func(p *NetPeer) error {
+		p.writeTimeout = ms
+		p.readTimeout = ms
+		return nil
+	}
 }
