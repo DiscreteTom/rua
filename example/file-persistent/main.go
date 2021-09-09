@@ -17,7 +17,15 @@ func main() {
 			}
 		})
 
-	s.AddPeer(debug.NewStdioPeer(s))
-	s.AddPeer(persistent.NewFilePeer("./log.txt", s))
+	if p, err := debug.NewStdioPeer(s); err != nil {
+		s.AddPeer(p)
+	} else {
+		s.GetLogger().Error(err)
+	}
+	if p, err := persistent.NewFilePeer("./log.txt", s); err != nil {
+		s.AddPeer(p)
+	} else {
+		s.GetLogger().Error(err)
+	}
 	s.Start()
 }

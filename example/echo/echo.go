@@ -14,6 +14,10 @@ func main() {
 			}
 		})
 
-	s.AddPeer(debug.NewStdioPeer(s))
+	if p, err := debug.NewStdioPeer(s); err != nil {
+		s.AddPeer(p)
+	} else {
+		s.GetLogger().Error(err)
+	}
 	s.Start()
 }
