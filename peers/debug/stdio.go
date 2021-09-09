@@ -7,29 +7,31 @@ import (
 	"sync"
 
 	"github.com/DiscreteTom/rua"
+	peer "github.com/DiscreteTom/rua/peers/basic"
 )
 
-func NewStdioPeer(gs rua.GameServer) *rua.BasicPeer {
+func NewStdioPeer(gs rua.GameServer) (*peer.BasicPeer, error) {
 	lock := sync.Mutex{}
 
-	return rua.NewBasicPeer(gs).
-		WithTag("stdio").
-		OnWrite(func(data []byte, p *rua.BasicPeer) error {
+	return peer.NewBasicPeer(
+		gs,
+		peer.Tag("stdio"),
+		peer.OnWrite(func(data []byte, p *peer.BasicPeer) error {
 			// prevent concurrent write
 			lock.Lock()
 			defer lock.Unlock()
 
 			_, err := fmt.Print(string(data))
 			return err
-		}).
-		OnClose(func(_ *rua.BasicPeer) error {
+		}),
+		peer.OnClose(func(_ *peer.BasicPeer) error {
 			// wait after write finished
 			lock.Lock()
 			defer lock.Unlock()
 
 			return nil
-		}).
-		OnStart(func(p *rua.BasicPeer) {
+		}),
+		peer.OnStart(func(p *peer.BasicPeer) {
 			reader := bufio.NewReader(os.Stdin)
 			for {
 				line, err := reader.ReadString('\n')
@@ -38,5 +40,6 @@ func NewStdioPeer(gs rua.GameServer) *rua.BasicPeer {
 				}
 				p.GetGameServer().AppendPeerMsg(p.GetId(), []byte(line))
 			}
-		})
+		}),
+	)
 }
