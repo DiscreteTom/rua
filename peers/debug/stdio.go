@@ -10,24 +10,29 @@ import (
 	peer "github.com/DiscreteTom/rua/peers/basic"
 )
 
-func NewStdioPeer(gs rua.GameServer) (*peer.BasicPeer, error) {
-	lock := sync.Mutex{}
+type StdioPeer struct {
+	peer.BasicPeer
+	lock *sync.Mutex
+}
 
-	return peer.NewBasicPeer(
+func NewStdioPeer(gs rua.GameServer) (*StdioPeer, error) {
+	p := &StdioPeer{lock: &sync.Mutex{}}
+
+	bp, err := peer.NewBasicPeer(
 		gs,
 		peer.Tag("stdio"),
-		peer.OnWrite(func(data []byte, p *peer.BasicPeer) error {
+		peer.OnWrite(func(data []byte, _ *peer.BasicPeer) error {
 			// prevent concurrent write
-			lock.Lock()
-			defer lock.Unlock()
+			p.lock.Lock()
+			defer p.lock.Unlock()
 
 			_, err := fmt.Print(string(data))
 			return err
 		}),
 		peer.OnClose(func(_ *peer.BasicPeer) error {
 			// wait after write finished
-			lock.Lock()
-			defer lock.Unlock()
+			p.lock.Lock()
+			defer p.lock.Unlock()
 
 			return nil
 		}),
@@ -42,4 +47,10 @@ func NewStdioPeer(gs rua.GameServer) (*peer.BasicPeer, error) {
 			}
 		}),
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	p.BasicPeer = *bp
+	return p, nil
 }
