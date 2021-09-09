@@ -7,41 +7,51 @@ import (
 	"time"
 
 	"github.com/DiscreteTom/rua"
+	peer "github.com/DiscreteTom/rua/peers/basic"
 )
+
+type NetPeer struct {
+	peer.BasicPeer
+	lock   *sync.Mutex
+	closed bool
+}
 
 // Create a peer with a connection of `net.Conn`.
 // If `timeout` == 0 (in ms), there is no timeout.
-func NewNetPeer(c net.Conn, gs rua.GameServer, bufSize int, readTimeout int, writeTimeout int) *rua.BasicPeer {
-	lock := sync.Mutex{}
-	closed := false
+func NewNetPeer(c net.Conn, gs rua.GameServer, bufSize int, readTimeout int, writeTimeout int) (*NetPeer, error) {
+	p := &NetPeer{
+		lock:   &sync.Mutex{},
+		closed: false,
+	}
 
-	return rua.NewBasicPeer(gs).
-		WithTag("net").
-		OnWrite(func(data []byte, p *rua.BasicPeer) error {
+	bp, err := peer.NewBasicPeer(
+		gs,
+		peer.Tag("net"),
+		peer.OnWrite(func(data []byte, bp *peer.BasicPeer) error {
 			// prevent concurrent write
-			lock.Lock()
-			defer lock.Unlock()
+			p.lock.Lock()
+			defer p.lock.Unlock()
 
-			if !closed {
+			if !p.closed {
 				if writeTimeout != 0 {
 					if err := c.SetWriteDeadline(time.Now().Add(time.Duration(readTimeout) * time.Millisecond)); err != nil {
-						p.GetLogger().Error("rua.NetPeer.SetWriteDeadline:", err)
+						bp.GetLogger().Error("rua.NetPeer.SetWriteDeadline:", err)
 					}
 				}
 				_, err := c.Write(data)
 				return err
 			}
 			return errors.New("peer already closed")
-		}).
-		OnClose(func(p *rua.BasicPeer) error {
+		}),
+		peer.OnClose(func(bp *peer.BasicPeer) error {
 			// wait after write finished
-			lock.Lock()
-			defer lock.Unlock()
+			p.lock.Lock()
+			defer p.lock.Unlock()
 
-			closed = true
+			p.closed = true
 			return c.Close() // close connection
-		}).
-		OnStart(func(p *rua.BasicPeer) {
+		}),
+		peer.OnStart(func(bp *peer.BasicPeer) {
 			for {
 				buf := make([]byte, bufSize)
 				if readTimeout != 0 {
@@ -51,7 +61,7 @@ func NewNetPeer(c net.Conn, gs rua.GameServer, bufSize int, readTimeout int, wri
 				}
 				n, err := c.Read(buf)
 				if err != nil {
-					if !closed { // not closed by peer.Close(), need to remove peer from server
+					if !p.closed { // not closed by peer.Close(), need to remove peer from server
 						if err.Error() == "timeout" {
 							p.GetLogger().Warnf("rua.NetPeer: peer[%d] timeout", p.GetId())
 						} else {
@@ -67,5 +77,12 @@ func NewNetPeer(c net.Conn, gs rua.GameServer, bufSize int, readTimeout int, wri
 					gs.AppendPeerMsg(p.GetId(), buf[:n])
 				}
 			}
-		})
+		}),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	p.BasicPeer = *bp
+	return p, nil
 }
