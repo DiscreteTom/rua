@@ -47,6 +47,17 @@ func Logger(l rua.Logger) PeerOption {
 	}
 }
 
+// This should only be called when initializing a peer.
+// Available options: peer.Tag(), peer.Logger(), peer.OnWrite(), peer.OnClose(), peer.OnStart()
+func (p *BasicPeer) With(options ...PeerOption) error {
+	for _, option := range options {
+		if err := option(p); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // This hook may be triggered concurrently
 func OnWrite(f func(data []byte, p *BasicPeer) error) PeerOption {
 	return func(p *BasicPeer) error {
