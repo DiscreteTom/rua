@@ -5,40 +5,58 @@ import (
 	"sync"
 
 	"github.com/DiscreteTom/rua"
+	peer "github.com/DiscreteTom/rua/peers/basic"
 )
 
-func NewFilePeer(filename string, gs rua.GameServer) *rua.BasicPeer {
-	lock := sync.Mutex{}
-	var fp *os.File = nil
+type FilePeer struct {
+	peer.BasicPeer
+	lock *sync.Mutex
+	fp   *os.File
+	fn   string // filename
+}
 
-	return rua.NewBasicPeer(gs).
-		WithTag("file").
-		OnWrite(func(data []byte, p *rua.BasicPeer) error {
+func NewFilePeer(filename string, gs rua.GameServer) (*FilePeer, error) {
+	p := &FilePeer{
+		lock: &sync.Mutex{},
+		fn:   filename,
+	}
+
+	bp, err := peer.NewBasicPeer(
+		gs,
+		peer.Tag("file"),
+		peer.OnWrite(func(data []byte, _ *peer.BasicPeer) error {
 			// prevent concurrent write
-			lock.Lock()
-			defer lock.Unlock()
+			p.lock.Lock()
+			defer p.lock.Unlock()
 
-			if _, err := fp.Write(data); err != nil {
+			if _, err := p.fp.Write(data); err != nil {
 				return err
 			}
-			return fp.Sync() // flush to disk
-		}).
-		OnClose(func(p *rua.BasicPeer) error {
+			return p.fp.Sync() // flush to disk
+		}),
+		peer.OnClose(func(_ *peer.BasicPeer) error {
 			// wait after write finished
-			lock.Lock()
-			defer lock.Unlock()
+			p.lock.Lock()
+			defer p.lock.Unlock()
 
-			return fp.Close() // close connection
-		}).
-		OnStart(func(p *rua.BasicPeer) {
-			lock.Lock()
-			defer lock.Unlock()
+			return p.fp.Close() // close connection
+		}),
+		peer.OnStart(func(_ *peer.BasicPeer) {
+			p.lock.Lock()
+			defer p.lock.Unlock()
 
 			var err error
-			fp, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+			p.fp, err = os.OpenFile(p.fn, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 			if err != nil {
 				p.GetLogger().Error("rua.FilePeer.OpenFile:", err)
 				return
 			}
-		})
+		}),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	p.BasicPeer = *bp
+	return p, nil
 }
