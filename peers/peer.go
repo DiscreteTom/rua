@@ -1,10 +1,12 @@
-package rua
+package peer
+
+import "github.com/DiscreteTom/rua"
 
 type BasicPeer struct {
 	id      int // peer id, assigned by game server
-	gs      GameServer
+	gs      rua.GameServer
 	tag     string
-	logger  Logger
+	logger  rua.Logger
 	onWrite func(data []byte, p *BasicPeer) error // lifecycle hook
 	onClose func(p *BasicPeer) error              // lifecycle hook
 	onStart func(p *BasicPeer)                    // lifecycle hook
@@ -12,11 +14,11 @@ type BasicPeer struct {
 
 // Create a basic peer.
 // You should call `WithTag`/`OnWrite`/`OnClose`/`OnStart` after this call.
-func NewBasicPeer(gs GameServer) *BasicPeer {
+func NewBasicPeer(gs rua.GameServer) *BasicPeer {
 	return &BasicPeer{
 		gs:      gs,
 		tag:     "basic",
-		logger:  GetDefaultLogger(),
+		logger:  rua.GetDefaultLogger(),
 		onWrite: func([]byte, *BasicPeer) error { return nil },
 		onClose: func(*BasicPeer) error { return nil },
 		onStart: func(*BasicPeer) {},
@@ -28,7 +30,7 @@ func (p *BasicPeer) WithTag(t string) *BasicPeer {
 	return p
 }
 
-func (p *BasicPeer) WithLogger(l Logger) *BasicPeer {
+func (p *BasicPeer) WithLogger(l rua.Logger) *BasicPeer {
 	p.logger = l
 	return p
 }
@@ -51,11 +53,11 @@ func (p *BasicPeer) OnStart(f func(p *BasicPeer)) *BasicPeer {
 	return p
 }
 
-func (p *BasicPeer) SetLogger(l Logger) {
+func (p *BasicPeer) SetLogger(l rua.Logger) {
 	p.logger = l
 }
 
-func (p *BasicPeer) GetLogger() Logger {
+func (p *BasicPeer) GetLogger() rua.Logger {
 	return p.logger
 }
 
@@ -75,7 +77,7 @@ func (p *BasicPeer) GetId() int {
 	return p.id
 }
 
-func (p *BasicPeer) GetGameServer() GameServer {
+func (p *BasicPeer) GetGameServer() rua.GameServer {
 	return p.gs
 }
 
