@@ -7,21 +7,20 @@ import (
 	"sync"
 
 	"github.com/DiscreteTom/rua"
-	peer "github.com/DiscreteTom/rua/peers/basic"
 )
 
 type StdioPeer struct {
-	peer.BasicPeer
+	BasicPeer
 	lock *sync.Mutex
 }
 
 func NewStdioPeer(gs rua.GameServer) (*StdioPeer, error) {
 	p := &StdioPeer{lock: &sync.Mutex{}}
 
-	bp, err := peer.NewBasicPeer(
+	bp, err := NewBasicPeer(
 		gs,
-		peer.Tag("stdio"),
-		peer.OnWrite(func(data []byte, _ *peer.BasicPeer) error {
+		Tag("stdio"),
+		OnWrite(func(data []byte, _ *BasicPeer) error {
 			// prevent concurrent write
 			p.lock.Lock()
 			defer p.lock.Unlock()
@@ -29,21 +28,21 @@ func NewStdioPeer(gs rua.GameServer) (*StdioPeer, error) {
 			_, err := fmt.Print(string(data))
 			return err
 		}),
-		peer.OnClose(func(_ *peer.BasicPeer) error {
+		OnClose(func(_ *BasicPeer) error {
 			// wait after write finished
 			p.lock.Lock()
 			defer p.lock.Unlock()
 
 			return nil
 		}),
-		peer.OnStart(func(_ *peer.BasicPeer) {
+		OnStart(func(_ *BasicPeer) {
 			reader := bufio.NewReader(os.Stdin)
 			for {
 				line, err := reader.ReadString('\n')
 				if err != nil && err.Error() != "EOF" {
-					p.GetLogger().Error("rua.StdioPeer.ReadString:", err)
+					p.Logger().Error("rua.StdioReadString:", err)
 				}
-				p.GetGameServer().AppendPeerMsg(p.GetId(), []byte(line))
+				p.GameServer().AppendPeerMsg(p.Id(), []byte(line))
 			}
 		}),
 	)

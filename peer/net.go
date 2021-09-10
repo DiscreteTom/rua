@@ -7,11 +7,10 @@ import (
 	"time"
 
 	"github.com/DiscreteTom/rua"
-	peer "github.com/DiscreteTom/rua/peers/basic"
 )
 
 type NetPeer struct {
-	peer.BasicPeer
+	BasicPeer
 	lock         *sync.Mutex
 	closed       bool
 	bufSize      int
@@ -34,10 +33,10 @@ func NewNetPeer(connection net.Conn, gs rua.GameServer, options ...NetPeerOption
 		c:            connection,
 	}
 
-	bp, err := peer.NewBasicPeer(
+	bp, err := NewBasicPeer(
 		gs,
-		peer.Tag("net"),
-		peer.OnWrite(func(data []byte, _ *peer.BasicPeer) error {
+		Tag("net"),
+		OnWrite(func(data []byte, _ *BasicPeer) error {
 			// prevent concurrent write
 			p.lock.Lock()
 			defer p.lock.Unlock()
@@ -45,7 +44,7 @@ func NewNetPeer(connection net.Conn, gs rua.GameServer, options ...NetPeerOption
 			if !p.closed {
 				if p.writeTimeout != 0 {
 					if err := p.c.SetWriteDeadline(time.Now().Add(time.Duration(p.readTimeout) * time.Millisecond)); err != nil {
-						p.GetLogger().Error("rua.NetPeer.SetWriteDeadline:", err)
+						p.Logger().Error("rua.NetSetWriteDeadline:", err)
 					}
 				}
 				_, err := p.c.Write(data)
@@ -53,7 +52,7 @@ func NewNetPeer(connection net.Conn, gs rua.GameServer, options ...NetPeerOption
 			}
 			return errors.New("peer already closed")
 		}),
-		peer.OnClose(func(_ *peer.BasicPeer) error {
+		OnClose(func(_ *BasicPeer) error {
 			// wait after write finished
 			p.lock.Lock()
 			defer p.lock.Unlock()
@@ -61,30 +60,30 @@ func NewNetPeer(connection net.Conn, gs rua.GameServer, options ...NetPeerOption
 			p.closed = true
 			return p.c.Close() // close connection
 		}),
-		peer.OnStart(func(_ *peer.BasicPeer) {
+		OnStart(func(_ *BasicPeer) {
 			for {
 				buf := make([]byte, p.bufSize)
 				if p.readTimeout != 0 {
 					if err := p.c.SetReadDeadline(time.Now().Add(time.Duration(p.readTimeout) * time.Millisecond)); err != nil {
-						p.GetLogger().Error("rua.NetPeer.SetReadDeadline:", err)
+						p.Logger().Error("rua.NetSetReadDeadline:", err)
 					}
 				}
 				n, err := p.c.Read(buf)
 				if err != nil {
-					if !p.closed { // not closed by peer.Close(), need to remove peer from server
+					if !p.closed { // not closed by Close(), need to remove peer from server
 						if err.Error() == "timeout" {
-							p.GetLogger().Warnf("rua.NetPeer: peer[%d] timeout", p.GetId())
+							p.Logger().Warnf("rua.NetPeer: peer[%d] timeout", p.Id())
 						} else {
-							p.GetLogger().Error("rua.NetPeer.OnStart:", err)
+							p.Logger().Error("rua.NetOnStart:", err)
 						}
 
-						if err := gs.RemovePeer(p.GetId()); err != nil {
-							p.GetLogger().Error("rua.NetPeer.RemovePeer:", err)
+						if err := gs.RemovePeer(p.Id()); err != nil {
+							p.Logger().Error("rua.NetRemovePeer:", err)
 						}
 						break
 					}
 				} else {
-					gs.AppendPeerMsg(p.GetId(), buf[:n])
+					gs.AppendPeerMsg(p.Id(), buf[:n])
 				}
 			}
 		}),
