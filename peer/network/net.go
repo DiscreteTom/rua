@@ -1,4 +1,4 @@
-package peer
+package network
 
 import (
 	"errors"
@@ -7,10 +7,11 @@ import (
 	"time"
 
 	"github.com/DiscreteTom/rua"
+	"github.com/DiscreteTom/rua/peer"
 )
 
 type NetPeer struct {
-	BasicPeer
+	peer.BasicPeer
 	lock         *sync.Mutex
 	closed       bool
 	bufSize      int
@@ -33,10 +34,10 @@ func NewNetPeer(connection net.Conn, gs rua.GameServer, options ...NetPeerOption
 		c:            connection,
 	}
 
-	bp, err := NewBasicPeer(
+	bp, err := peer.NewBasicPeer(
 		gs,
-		Tag("net"),
-		OnWrite(func(data []byte, _ *BasicPeer) error {
+		peer.Tag("net"),
+		peer.OnWrite(func(data []byte, _ *peer.BasicPeer) error {
 			// prevent concurrent write
 			p.lock.Lock()
 			defer p.lock.Unlock()
@@ -52,7 +53,7 @@ func NewNetPeer(connection net.Conn, gs rua.GameServer, options ...NetPeerOption
 			}
 			return errors.New("peer already closed")
 		}),
-		OnClose(func(_ *BasicPeer) error {
+		peer.OnClose(func(_ *peer.BasicPeer) error {
 			// wait after write finished
 			p.lock.Lock()
 			defer p.lock.Unlock()
@@ -60,7 +61,7 @@ func NewNetPeer(connection net.Conn, gs rua.GameServer, options ...NetPeerOption
 			p.closed = true
 			return p.c.Close() // close connection
 		}),
-		OnStart(func(_ *BasicPeer) {
+		peer.OnStart(func(_ *peer.BasicPeer) {
 			for {
 				buf := make([]byte, p.bufSize)
 				if p.readTimeout != 0 {

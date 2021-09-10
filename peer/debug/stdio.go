@@ -1,4 +1,4 @@
-package peer
+package debug
 
 import (
 	"bufio"
@@ -7,20 +7,21 @@ import (
 	"sync"
 
 	"github.com/DiscreteTom/rua"
+	"github.com/DiscreteTom/rua/peer"
 )
 
 type StdioPeer struct {
-	BasicPeer
+	peer.BasicPeer
 	lock *sync.Mutex
 }
 
 func NewStdioPeer(gs rua.GameServer) (*StdioPeer, error) {
 	p := &StdioPeer{lock: &sync.Mutex{}}
 
-	bp, err := NewBasicPeer(
+	bp, err := peer.NewBasicPeer(
 		gs,
-		Tag("stdio"),
-		OnWrite(func(data []byte, _ *BasicPeer) error {
+		peer.Tag("stdio"),
+		peer.OnWrite(func(data []byte, _ *peer.BasicPeer) error {
 			// prevent concurrent write
 			p.lock.Lock()
 			defer p.lock.Unlock()
@@ -28,14 +29,14 @@ func NewStdioPeer(gs rua.GameServer) (*StdioPeer, error) {
 			_, err := fmt.Print(string(data))
 			return err
 		}),
-		OnClose(func(_ *BasicPeer) error {
+		peer.OnClose(func(_ *peer.BasicPeer) error {
 			// wait after write finished
 			p.lock.Lock()
 			defer p.lock.Unlock()
 
 			return nil
 		}),
-		OnStart(func(_ *BasicPeer) {
+		peer.OnStart(func(_ *peer.BasicPeer) {
 			reader := bufio.NewReader(os.Stdin)
 			for {
 				line, err := reader.ReadString('\n')

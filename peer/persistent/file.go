@@ -1,14 +1,15 @@
-package peer
+package persistent
 
 import (
 	"os"
 	"sync"
 
 	"github.com/DiscreteTom/rua"
+	"github.com/DiscreteTom/rua/peer"
 )
 
 type FilePeer struct {
-	BasicPeer
+	peer.BasicPeer
 	lock *sync.Mutex
 	fp   *os.File
 	fn   string // filename
@@ -20,10 +21,10 @@ func NewFilePeer(filename string, gs rua.GameServer) (*FilePeer, error) {
 		fn:   filename,
 	}
 
-	bp, err := NewBasicPeer(
+	bp, err := peer.NewBasicPeer(
 		gs,
-		Tag("file"),
-		OnWrite(func(data []byte, _ *BasicPeer) error {
+		peer.Tag("file"),
+		peer.OnWrite(func(data []byte, _ *peer.BasicPeer) error {
 			// prevent concurrent write
 			p.lock.Lock()
 			defer p.lock.Unlock()
@@ -33,14 +34,14 @@ func NewFilePeer(filename string, gs rua.GameServer) (*FilePeer, error) {
 			}
 			return p.fp.Sync() // flush to disk
 		}),
-		OnClose(func(_ *BasicPeer) error {
+		peer.OnClose(func(_ *peer.BasicPeer) error {
 			// wait after write finished
 			p.lock.Lock()
 			defer p.lock.Unlock()
 
 			return p.fp.Close() // close connection
 		}),
-		OnStart(func(_ *BasicPeer) {
+		peer.OnStart(func(_ *peer.BasicPeer) {
 			p.lock.Lock()
 			defer p.lock.Unlock()
 
