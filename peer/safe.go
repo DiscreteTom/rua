@@ -54,7 +54,14 @@ func (sp *SafePeer) OnStartSafe(f func()) {
 	sp.onStart = func() {
 		sp.lock.Lock()
 		defer sp.lock.Unlock()
-
 		f()
 	}
+}
+
+func (sp *SafePeer) Lock() {
+	sp.lock.Lock()
+}
+
+func (sp *SafePeer) Unlock() {
+	sp.lock.Unlock()
 }
