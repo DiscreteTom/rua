@@ -12,7 +12,7 @@ type SafePeer struct {
 }
 
 func NewSafePeer(gs rua.GameServer, options ...BasicPeerOption) (*SafePeer, error) {
-	p := &SafePeer{
+	sp := &SafePeer{
 		lock: &sync.Mutex{},
 	}
 
@@ -25,35 +25,35 @@ func NewSafePeer(gs rua.GameServer, options ...BasicPeerOption) (*SafePeer, erro
 		return nil, err
 	}
 
-	p.BasicPeer = bp
-	return p, nil
+	sp.BasicPeer = bp
+	return sp, nil
 }
 
 // This hook can be safely triggered concurrently.
-func (p *SafePeer) OnWriteSafe(f func([]byte) error) {
-	p.onWrite = func(data []byte) error {
-		p.lock.Lock()
-		defer p.lock.Unlock()
+func (sp *SafePeer) OnWriteSafe(f func([]byte) error) {
+	sp.onWrite = func(data []byte) error {
+		sp.lock.Lock()
+		defer sp.lock.Unlock()
 
 		return f(data)
 	}
 }
 
 // This hook can be safely triggered concurrently.
-func (p *SafePeer) OnCloseSafe(f func() error) {
-	p.onClose = func() error {
-		p.lock.Lock()
-		defer p.lock.Unlock()
+func (sp *SafePeer) OnCloseSafe(f func() error) {
+	sp.onClose = func() error {
+		sp.lock.Lock()
+		defer sp.lock.Unlock()
 
 		return f()
 	}
 }
 
 // This hook can be safely triggered concurrently.
-func (p *SafePeer) OnStartSafe(f func()) {
-	p.onStart = func() {
-		p.lock.Lock()
-		defer p.lock.Unlock()
+func (sp *SafePeer) OnStartSafe(f func()) {
+	sp.onStart = func() {
+		sp.lock.Lock()
+		defer sp.lock.Unlock()
 
 		f()
 	}
