@@ -7,9 +7,9 @@ type Peer interface {
 	Close() error
 	Start() // start and wait
 	SetId(int)
-	GetId() int
+	Id() int
 	SetTag(string)
-	GetTag() string
+	Tag() string
 }
 
 type PeerMsg struct {
@@ -21,7 +21,7 @@ type PeerMsg struct {
 type GameServer interface {
 	AddPeer(Peer) int
 	RemovePeer(peerId int) error
-	GetPeerCount() int
+	Peers() map[int]Peer
 	AppendPeerMsg(peerId int, d []byte)
 	Start() []error
 	Stop()
