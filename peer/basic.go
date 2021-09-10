@@ -20,7 +20,7 @@ func NewBasicPeer(gs rua.GameServer, options ...BasicPeerOption) (*BasicPeer, er
 	p := &BasicPeer{
 		gs:      gs,
 		tag:     "basic",
-		logger:  rua.GetDefaultLogger(),
+		logger:  rua.DefaultLogger(),
 		onWrite: func([]byte, *BasicPeer) error { return nil },
 		onClose: func(*BasicPeer) error { return nil },
 		onStart: func(*BasicPeer) {},
@@ -86,7 +86,7 @@ func (p *BasicPeer) SetLogger(l rua.Logger) {
 	p.logger = l
 }
 
-func (p *BasicPeer) GetLogger() rua.Logger {
+func (p *BasicPeer) Logger() rua.Logger {
 	return p.logger
 }
 
@@ -94,7 +94,7 @@ func (p *BasicPeer) SetTag(t string) {
 	p.tag = t
 }
 
-func (p *BasicPeer) GetTag() string {
+func (p *BasicPeer) Tag() string {
 	return p.tag
 }
 
@@ -102,11 +102,11 @@ func (p *BasicPeer) SetId(id int) {
 	p.id = id
 }
 
-func (p *BasicPeer) GetId() int {
+func (p *BasicPeer) Id() int {
 	return p.id
 }
 
-func (p *BasicPeer) GetGameServer() rua.GameServer {
+func (p *BasicPeer) GameServer() rua.GameServer {
 	return p.gs
 }
 
