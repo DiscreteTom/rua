@@ -1,4 +1,4 @@
-package debug
+package peer
 
 import (
 	"bufio"

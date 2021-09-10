@@ -1,4 +1,4 @@
-package basic
+package peer
 
 import "github.com/DiscreteTom/rua"
 
