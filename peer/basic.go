@@ -7,9 +7,9 @@ type BasicPeer struct {
 	gs      rua.GameServer
 	tag     string
 	logger  rua.Logger
-	onWrite func(data []byte, p *BasicPeer) error // lifecycle hook
-	onClose func(p *BasicPeer) error              // lifecycle hook
-	onStart func(p *BasicPeer)                    // lifecycle hook
+	onWrite func(data []byte) error // lifecycle hook
+	onClose func() error            // lifecycle hook
+	onStart func()                  // lifecycle hook
 }
 
 type BasicPeerOption func(*BasicPeer) error
@@ -21,9 +21,9 @@ func NewBasicPeer(gs rua.GameServer, options ...BasicPeerOption) (*BasicPeer, er
 		gs:      gs,
 		tag:     "basic",
 		logger:  rua.DefaultLogger(),
-		onWrite: func([]byte, *BasicPeer) error { return nil },
-		onClose: func(*BasicPeer) error { return nil },
-		onStart: func(*BasicPeer) {},
+		onWrite: func([]byte) error { return nil },
+		onClose: func() error { return nil },
+		onStart: func() {},
 	}
 	for _, option := range options {
 		if err := option(p); err != nil {
@@ -59,7 +59,7 @@ func (p *BasicPeer) With(options ...BasicPeerOption) error {
 }
 
 // This hook may be triggered concurrently
-func OnWrite(f func(data []byte, p *BasicPeer) error) BasicPeerOption {
+func OnWrite(f func(data []byte) error) BasicPeerOption {
 	return func(p *BasicPeer) error {
 		p.onWrite = f
 		return nil
@@ -67,7 +67,7 @@ func OnWrite(f func(data []byte, p *BasicPeer) error) BasicPeerOption {
 }
 
 // This hook may be triggered concurrently
-func OnClose(f func(p *BasicPeer) error) BasicPeerOption {
+func OnClose(f func() error) BasicPeerOption {
 	return func(p *BasicPeer) error {
 		p.onClose = f
 		return nil
@@ -75,7 +75,7 @@ func OnClose(f func(p *BasicPeer) error) BasicPeerOption {
 }
 
 // This hook may NOT be triggered concurrently
-func OnStart(f func(p *BasicPeer)) BasicPeerOption {
+func OnStart(f func()) BasicPeerOption {
 	return func(p *BasicPeer) error {
 		p.onStart = f
 		return nil
@@ -111,14 +111,14 @@ func (p *BasicPeer) GameServer() rua.GameServer {
 }
 
 func (p *BasicPeer) Write(data []byte) error {
-	return p.onWrite(data, p)
+	return p.onWrite(data)
 }
 
 func (p *BasicPeer) Close() error {
-	return p.onClose(p)
+	return p.onClose()
 }
 
 // Start and wait.
 func (p *BasicPeer) Start() {
-	p.onStart(p)
+	p.onStart()
 }
