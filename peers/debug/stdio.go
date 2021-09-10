@@ -36,7 +36,7 @@ func NewStdioPeer(gs rua.GameServer) (*StdioPeer, error) {
 
 			return nil
 		}),
-		peer.OnStart(func(p *peer.BasicPeer) {
+		peer.OnStart(func(_ *peer.BasicPeer) {
 			reader := bufio.NewReader(os.Stdin)
 			for {
 				line, err := reader.ReadString('\n')
