@@ -2,61 +2,48 @@ package persistent
 
 import (
 	"os"
-	"sync"
 
 	"github.com/DiscreteTom/rua"
 	"github.com/DiscreteTom/rua/peer"
 )
 
 type FilePeer struct {
-	peer.BasicPeer
-	lock *sync.Mutex
-	fp   *os.File
-	fn   string // filename
+	*peer.SafePeer
+	file     *os.File
+	filename string // filename
 }
 
-func NewFilePeer(filename string, gs rua.GameServer) (*FilePeer, error) {
-	p := &FilePeer{
-		lock: &sync.Mutex{},
-		fn:   filename,
+func NewFilePeer(filename string, gs rua.GameServer, options ...peer.BasicPeerOption) (*FilePeer, error) {
+	fp := &FilePeer{
+		filename: filename,
 	}
 
-	bp, err := peer.NewBasicPeer(
+	sp, err := peer.NewSafePeer(
 		gs,
 		peer.Tag("file"),
-		peer.OnWrite(func(data []byte, _ *peer.BasicPeer) error {
-			// prevent concurrent write
-			p.lock.Lock()
-			defer p.lock.Unlock()
-
-			if _, err := p.fp.Write(data); err != nil {
-				return err
-			}
-			return p.fp.Sync() // flush to disk
-		}),
-		peer.OnClose(func(_ *peer.BasicPeer) error {
-			// wait after write finished
-			p.lock.Lock()
-			defer p.lock.Unlock()
-
-			return p.fp.Close() // close connection
-		}),
-		peer.OnStart(func(_ *peer.BasicPeer) {
-			p.lock.Lock()
-			defer p.lock.Unlock()
-
-			var err error
-			p.fp, err = os.OpenFile(p.fn, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
-			if err != nil {
-				p.Logger().Error("rua.FileOpenFile:", err)
-				return
-			}
-		}),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	p.BasicPeer = *bp
-	return p, nil
+	sp.OnStartSafe(func() {
+		var err error
+		fp.file, err = os.OpenFile(fp.filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+		if err != nil {
+			fp.Logger().Error("rua.FileOpenFile:", err)
+			return
+		}
+	})
+	sp.OnWriteSafe(func(data []byte) error {
+		if _, err := fp.file.Write(data); err != nil {
+			return err
+		}
+		return fp.file.Sync() // flush to disk
+	})
+	sp.OnCloseSafe(func() error {
+		return fp.file.Close() // close connection
+	})
+
+	fp.SafePeer = sp
+	return fp, nil
 }
