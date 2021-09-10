@@ -18,7 +18,7 @@ type BasicPeerOption func(*BasicPeer) error
 // Optional params: peer.Tag(), peer.Logger().
 // You can use BasicPeer.OnWrite(), BasicPeer.OnClose(), BasicPeer.OnStart() to register lifecycle hooks.
 func NewBasicPeer(gs rua.GameServer, options ...BasicPeerOption) (*BasicPeer, error) {
-	p := &BasicPeer{
+	bp := &BasicPeer{
 		gs:      gs,
 		tag:     "basic",
 		logger:  rua.DefaultLogger(),
@@ -27,32 +27,32 @@ func NewBasicPeer(gs rua.GameServer, options ...BasicPeerOption) (*BasicPeer, er
 		onStart: func() {},
 	}
 	for _, option := range options {
-		if err := option(p); err != nil {
+		if err := option(bp); err != nil {
 			return nil, err
 		}
 	}
-	return p, nil
+	return bp, nil
 }
 
 func Tag(t string) BasicPeerOption {
-	return func(p *BasicPeer) error {
-		p.tag = t
+	return func(bp *BasicPeer) error {
+		bp.tag = t
 		return nil
 	}
 }
 
 func Logger(l rua.Logger) BasicPeerOption {
-	return func(p *BasicPeer) error {
-		p.logger = l
+	return func(bp *BasicPeer) error {
+		bp.logger = l
 		return nil
 	}
 }
 
 // This should only be called when initializing a peer.
 // Available options: peer.Tag(), peer.Logger().
-func (p *BasicPeer) With(options ...BasicPeerOption) error {
+func (bp *BasicPeer) With(options ...BasicPeerOption) error {
 	for _, option := range options {
-		if err := option(p); err != nil {
+		if err := option(bp); err != nil {
 			return err
 		}
 	}
@@ -60,57 +60,57 @@ func (p *BasicPeer) With(options ...BasicPeerOption) error {
 }
 
 // This hook may be triggered concurrently
-func (p *BasicPeer) OnWrite(f func(data []byte) error) {
-	p.onWrite = f
+func (bp *BasicPeer) OnWrite(f func(data []byte) error) {
+	bp.onWrite = f
 }
 
 // This hook may be triggered concurrently
-func (p *BasicPeer) OnClose(f func() error) {
-	p.onClose = f
+func (bp *BasicPeer) OnClose(f func() error) {
+	bp.onClose = f
 }
 
 // This hook may NOT be triggered concurrently
-func (p *BasicPeer) OnStart(f func()) {
-	p.onStart = f
+func (bp *BasicPeer) OnStart(f func()) {
+	bp.onStart = f
 }
 
-func (p *BasicPeer) SetLogger(l rua.Logger) {
-	p.logger = l
+func (bp *BasicPeer) SetLogger(l rua.Logger) {
+	bp.logger = l
 }
 
-func (p *BasicPeer) Logger() rua.Logger {
-	return p.logger
+func (bp *BasicPeer) Logger() rua.Logger {
+	return bp.logger
 }
 
-func (p *BasicPeer) SetTag(t string) {
-	p.tag = t
+func (bp *BasicPeer) SetTag(t string) {
+	bp.tag = t
 }
 
-func (p *BasicPeer) Tag() string {
-	return p.tag
+func (bp *BasicPeer) Tag() string {
+	return bp.tag
 }
 
-func (p *BasicPeer) SetId(id int) {
-	p.id = id
+func (bp *BasicPeer) SetId(id int) {
+	bp.id = id
 }
 
-func (p *BasicPeer) Id() int {
-	return p.id
+func (bp *BasicPeer) Id() int {
+	return bp.id
 }
 
-func (p *BasicPeer) GameServer() rua.GameServer {
-	return p.gs
+func (bp *BasicPeer) GameServer() rua.GameServer {
+	return bp.gs
 }
 
-func (p *BasicPeer) Write(data []byte) error {
-	return p.onWrite(data)
+func (bp *BasicPeer) Write(data []byte) error {
+	return bp.onWrite(data)
 }
 
-func (p *BasicPeer) Close() error {
-	return p.onClose()
+func (bp *BasicPeer) Close() error {
+	return bp.onClose()
 }
 
 // Start and wait.
-func (p *BasicPeer) Start() {
-	p.onStart()
+func (bp *BasicPeer) Start() {
+	bp.onStart()
 }
