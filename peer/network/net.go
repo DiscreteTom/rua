@@ -3,7 +3,6 @@ package network
 import (
 	"errors"
 	"net"
-	"sync"
 	"time"
 
 	"github.com/DiscreteTom/rua"
@@ -11,8 +10,7 @@ import (
 )
 
 type NetPeer struct {
-	peer.BasicPeer
-	lock         *sync.Mutex
+	*peer.SafePeer
 	closed       bool
 	bufSize      int
 	readTimeout  int
@@ -20,109 +18,84 @@ type NetPeer struct {
 	c            net.Conn
 }
 
-type NetPeerOption func(*NetPeer) error
-
 // Create a peer with a connection of `net.Conn`.
 // If `timeout` == 0 (in ms), there is no timeout.
-func NewNetPeer(connection net.Conn, gs rua.GameServer, options ...NetPeerOption) (*NetPeer, error) {
-	p := &NetPeer{
-		lock:         &sync.Mutex{},
+func NewNetPeer(conn net.Conn, gs rua.GameServer) (*NetPeer, error) {
+	np := &NetPeer{
 		closed:       false,
 		bufSize:      4096,
 		readTimeout:  0,
 		writeTimeout: 0,
-		c:            connection,
+		c:            conn,
 	}
 
-	bp, err := peer.NewBasicPeer(
-		gs,
-		peer.Tag("net"),
-		peer.OnWrite(func(data []byte, _ *peer.BasicPeer) error {
-			// prevent concurrent write
-			p.lock.Lock()
-			defer p.lock.Unlock()
-
-			if !p.closed {
-				if p.writeTimeout != 0 {
-					if err := p.c.SetWriteDeadline(time.Now().Add(time.Duration(p.readTimeout) * time.Millisecond)); err != nil {
-						p.Logger().Error("rua.NetSetWriteDeadline:", err)
-					}
-				}
-				_, err := p.c.Write(data)
-				return err
-			}
-			return errors.New("peer already closed")
-		}),
-		peer.OnClose(func(_ *peer.BasicPeer) error {
-			// wait after write finished
-			p.lock.Lock()
-			defer p.lock.Unlock()
-
-			p.closed = true
-			return p.c.Close() // close connection
-		}),
-		peer.OnStart(func(_ *peer.BasicPeer) {
-			for {
-				buf := make([]byte, p.bufSize)
-				if p.readTimeout != 0 {
-					if err := p.c.SetReadDeadline(time.Now().Add(time.Duration(p.readTimeout) * time.Millisecond)); err != nil {
-						p.Logger().Error("rua.NetSetReadDeadline:", err)
-					}
-				}
-				n, err := p.c.Read(buf)
-				if err != nil {
-					if !p.closed { // not closed by Close(), need to remove peer from server
-						if err.Error() == "timeout" {
-							p.Logger().Warnf("rua.NetPeer: peer[%d] timeout", p.Id())
-						} else {
-							p.Logger().Error("rua.NetOnStart:", err)
-						}
-
-						if err := gs.RemovePeer(p.Id()); err != nil {
-							p.Logger().Error("rua.NetRemovePeer:", err)
-						}
-						break
-					}
-				} else {
-					gs.AppendPeerMsg(p.Id(), buf[:n])
-				}
-			}
-		}),
-	)
+	sp, err := peer.NewSafePeer(gs)
 	if err != nil {
 		return nil, err
 	}
 
-	p.BasicPeer = *bp
-	return p, nil
+	sp.SetTag("net")
+	sp.OnWriteSafe(func(data []byte) error {
+		if !np.closed {
+			if np.writeTimeout != 0 {
+				if err := np.c.SetWriteDeadline(time.Now().Add(time.Duration(np.readTimeout) * time.Millisecond)); err != nil {
+					np.Logger().Error("rua.NetSetWriteDeadline:", err)
+				}
+			}
+			_, err := np.c.Write(data)
+			return err
+		}
+		return errors.New("peer already closed")
+	})
+	sp.OnCloseSafe(func() error {
+		np.closed = true
+		return np.c.Close() // close connection
+	})
+	sp.OnStart(func() {
+		for {
+			buf := make([]byte, np.bufSize)
+			if np.readTimeout != 0 {
+				if err := np.c.SetReadDeadline(time.Now().Add(time.Duration(np.readTimeout) * time.Millisecond)); err != nil {
+					np.Logger().Error("rua.NetSetReadDeadline:", err)
+				}
+			}
+			n, err := np.c.Read(buf)
+			if err != nil {
+				if !np.closed { // not closed by Close(), need to remove peer from server
+					if err.Error() == "timeout" {
+						np.Logger().Warnf("rua.NetPeer: peer[%d] timeout", np.Id())
+					} else {
+						np.Logger().Error("rua.NetOnStart:", err)
+					}
+
+					if err := gs.RemovePeer(np.Id()); err != nil {
+						np.Logger().Error("rua.NetRemovePeer:", err)
+					}
+					break
+				}
+			} else {
+				gs.AppendPeerMsg(np.Id(), buf[:n])
+			}
+		}
+	})
+
+	np.SafePeer = sp
+	return np, nil
 }
 
-func BufSize(n int) NetPeerOption {
-	return func(p *NetPeer) error {
-		p.bufSize = n
-		return nil
-	}
+func (np *NetPeer) SetBufSize(n int) {
+	np.bufSize = n
 }
 
-func ReadTimeout(ms int) NetPeerOption {
-	return func(p *NetPeer) error {
-		p.readTimeout = ms
-		return nil
-	}
+func (np *NetPeer) SetReadTimeout(ms int) {
+	np.readTimeout = ms
 }
 
-func WriteTimeout(ms int) NetPeerOption {
-	return func(p *NetPeer) error {
-		p.writeTimeout = ms
-		return nil
-	}
+func (np *NetPeer) SetWriteTimeout(ms int) {
+	np.writeTimeout = ms
 }
 
 // Set the readTimeout and writeTimeout to the specified ms.
-func Timeout(ms int) NetPeerOption {
-	return func(p *NetPeer) error {
-		p.writeTimeout = ms
-		p.readTimeout = ms
-		return nil
-	}
+func (np *NetPeer) SetTimeout(ms int) {
+	np.writeTimeout = ms
 }
