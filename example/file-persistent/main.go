@@ -2,30 +2,24 @@ package main
 
 import (
 	"github.com/DiscreteTom/rua"
-	"github.com/DiscreteTom/rua/peers/debug"
-	"github.com/DiscreteTom/rua/peers/persistent"
+	"github.com/DiscreteTom/rua/peer/debug"
+	"github.com/DiscreteTom/rua/peer/persistent"
 )
 
 func main() {
-	s := rua.NewEventDrivenServer().
-		SetHandleKeyboardInterrupt(true).
-		OnPeerMsg(func(msg *rua.PeerMsg, s *rua.EventDrivenServer) {
-			for _, p := range s.GetPeers() {
-				if p.GetTag() == "file" {
-					p.Write(msg.Data)
-				}
+	s, _ := rua.NewEventDrivenServer()
+	s.OnPeerMsg(func(msg *rua.PeerMsg) {
+		s.ForEachPeer(func(id int, peer rua.Peer) {
+			if peer.Tag() == "file" {
+				peer.Write(msg.Data)
 			}
 		})
+	})
 
-	if p, err := debug.NewStdioPeer(s); err != nil {
-		s.AddPeer(p)
-	} else {
-		s.GetLogger().Error(err)
-	}
-	if p, err := persistent.NewFilePeer("./log.txt", s); err != nil {
-		s.AddPeer(p)
-	} else {
-		s.GetLogger().Error(err)
-	}
+	sp, _ := debug.NewStdioPeer(s)
+	s.AddPeer(sp)
+	fp, _ := persistent.NewFilePeer("./log.txt", s)
+	s.AddPeer(fp)
+
 	s.Start()
 }
