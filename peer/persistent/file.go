@@ -1,0 +1,43 @@
+package persistent
+
+import (
+	"os"
+
+	"github.com/DiscreteTom/rua"
+	"github.com/DiscreteTom/rua/peer"
+)
+
+type FilePeer struct {
+	*peer.SafePeer
+	file     *os.File
+	filename string // filename
+}
+
+func NewFilePeer(filename string, gs rua.GameServer) *FilePeer {
+	fp := &FilePeer{
+		SafePeer: peer.NewSafePeer(gs),
+		filename: filename,
+	}
+
+	fp.SafePeer.
+		OnStartSafe(func() {
+			var err error
+			fp.file, err = os.OpenFile(fp.filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+			if err != nil {
+				fp.Logger().Error("rua.FileOpenFile:", err)
+				return
+			}
+		}).
+		OnWriteSafe(func(data []byte) error {
+			if _, err := fp.file.Write(data); err != nil {
+				return err
+			}
+			return fp.file.Sync() // flush to disk
+		}).
+		OnCloseSafe(func() error {
+			return fp.file.Close() // close connection
+		}).
+		WithTag("file")
+
+	return fp
+}

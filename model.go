@@ -7,24 +7,21 @@ type Peer interface {
 	Close() error
 	Start() // start and wait
 	SetId(int)
-	GetId() int
+	Id() int
 	SetTag(string)
-	GetTag() string
+	Tag() string
 }
 
 type PeerMsg struct {
-	PeerId int
-	Data   []byte
-	Time   time.Time
+	Peer Peer
+	Data []byte
+	Time time.Time
 }
 
 type GameServer interface {
 	AddPeer(Peer) int
 	RemovePeer(peerId int) error
-	GetPeerCount() int
-	AppendPeerMsg(peerId int, d []byte)
-	Start() []error
-	Stop()
+	AppendPeerMsg(p Peer, d []byte)
 }
 
 type SmallestLogger interface {

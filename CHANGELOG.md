@@ -1,10 +1,16 @@
 # CHANGELOG
 
+## v0.4
+
+- Optimize code.
+- Add SafePeer.
+- Almost all APIs are changed.
+
 ## v0.3
 
 - Supported server types:
-  - Lockstep server.
-  - Event driven server
+  - LockstepServer.
+  - EventDrivenServer
 - Supported peers:
   - StdioPeer
   - FilePeer
