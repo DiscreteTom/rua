@@ -13,23 +13,17 @@ type FilePeer struct {
 	filename string // filename
 }
 
-func NewFilePeer(filename string, gs rua.GameServer, options ...peer.BasicPeerOption) (*FilePeer, error) {
+func NewFilePeer(filename string, gs rua.GameServer) (*FilePeer, error) {
 	fp := &FilePeer{
 		filename: filename,
 	}
 
-	sp, err := peer.NewSafePeer(
-		gs,
-		peer.Tag("file"),
-	)
+	sp, err := peer.NewSafePeer(gs)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := sp.With(options...); err != nil {
-		return nil, err
-	}
-
+	sp.SetTag("file")
 	sp.OnStartSafe(func() {
 		var err error
 		fp.file, err = os.OpenFile(fp.filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
