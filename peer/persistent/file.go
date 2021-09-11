@@ -26,6 +26,10 @@ func NewFilePeer(filename string, gs rua.GameServer, options ...peer.BasicPeerOp
 		return nil, err
 	}
 
+	if err := sp.With(options...); err != nil {
+		return nil, err
+	}
+
 	sp.OnStartSafe(func() {
 		var err error
 		fp.file, err = os.OpenFile(fp.filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
