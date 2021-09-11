@@ -31,57 +31,58 @@ func main() {
 		game.PlayerHealth[i] = playerMaxHealth
 	}
 
-	s := rua.NewEventDrivenServer().
-		SetHandleKeyboardInterrupt(true).
-		BeforeAddPeer(func(newPeer rua.Peer, s *rua.EventDrivenServer) {
+	s := rua.NewEventDrivenServer()
+
+	s.
+		BeforeAddPeer(func(newPeer rua.Peer) {
 			// notify existing players
-			broadcastSync(s.GetPeers(), []byte(fmt.Sprintf(
+			broadcastSync(s, []byte(fmt.Sprintf(
 				"Player[%d] added. Current player count: %d",
-				newPeer.GetId(), s.GetPeerCount()+1,
+				newPeer.Id(), s.PeerCount()+1,
 			)))
 		}).
-		AfterAddPeer(func(newPeer rua.Peer, s *rua.EventDrivenServer) {
+		AfterAddPeer(func(newPeer rua.Peer) {
 			// notify the new Peer
-			newPeer.Write([]byte(fmt.Sprintf("Current player count: %d", s.GetPeerCount())))
+			newPeer.Write([]byte(fmt.Sprintf("Current player count: %d", s.PeerCount())))
 			// if all players are arrived, start the game and notify all players
-			if s.GetPeerCount() == playerCount {
+			if s.PeerCount() == playerCount {
 				game.Started = true
-				broadcastSync(s.GetPeers(), []byte("Game started"))
+				broadcastSync(s, []byte("Game started"))
 			}
 		}).
-		AfterRemovePeer(func(targetId int, s *rua.EventDrivenServer) {
+		AfterRemovePeer(func(targetId int) {
 			if !game.Over { // players are not removed by the server
-				if s.GetPeerCount() == 0 {
+				if s.PeerCount() == 0 {
 					// no player left, end the game
 					s.Stop()
 				} else {
 					// notify remaining players
-					broadcastSync(s.GetPeers(), []byte(fmt.Sprintf(
+					broadcastSync(s, []byte(fmt.Sprintf(
 						"Player[%d] leaved. Current player count: %d",
-						targetId, s.GetPeerCount(),
+						targetId, s.PeerCount(),
 					)))
 					// not enough player, stop the game to wait for enough players
 					if game.Started {
 						game.Started = false
-						broadcastSync(s.GetPeers(), []byte("Game stopped"))
+						broadcastSync(s, []byte("Game stopped"))
 					}
 				}
 			}
 		}).
-		OnPeerMsg(func(msg *rua.PeerMsg, s *rua.EventDrivenServer) {
+		OnPeerMsg(func(msg *rua.PeerMsg) {
 			if game.Started {
 				processGameLogic(msg, s, game)
 			} else {
 				// game not started, echo an error
-				s.GetPeer(msg.PeerId).Write([]byte("Game has not been started"))
+				msg.Peer.Write([]byte("Game has not been started"))
 			}
 		})
 
 	errChan := make(chan error)
 	go func() {
 		errChan <- websocket.NewWebsocketListener(":8080", s).
-			WithGuardian(func(_ http.ResponseWriter, _ *http.Request, gs rua.GameServer) bool {
-				return gs.GetPeerCount() < playerCount // only playerCount players can be accepted
+			WithGuardian(func(_ http.ResponseWriter, _ *http.Request) bool {
+				return s.PeerCount() < playerCount // only playerCount players can be accepted
 			}).
 			Start()
 	}()
@@ -93,10 +94,10 @@ func main() {
 
 	select {
 	case err := <-errChan:
-		s.GetLogger().Error(err)
+		s.Logger().Error(err)
 	case errs := <-serverErrsChan:
 		if len(errs) != 0 {
-			s.GetLogger().Error(errs)
+			s.Logger().Error(errs)
 		}
 		break
 	}
@@ -104,56 +105,56 @@ func main() {
 
 func processGameLogic(msg *rua.PeerMsg, gs *rua.EventDrivenServer, state *Game) {
 	// dead player can not attack
-	if state.PlayerHealth[msg.PeerId] == 0 {
-		go gs.GetPeer(msg.PeerId).Write([]byte("You are dead and can not attack"))
+	if state.PlayerHealth[msg.Peer.Id()] == 0 {
+		go msg.Peer.Write([]byte("You are dead and can not attack"))
 		return
 	}
 
 	// attack take effects
-	for i, p := range gs.GetPeers() {
-		if i != msg.PeerId { // not the attacker
+	gs.ForEachPeer(func(i int, p rua.Peer) {
+		if i != msg.Peer.Id() { // not the attacker
 			if state.PlayerHealth[i] > 0 { // alive
 				state.PlayerHealth[i]--
 				if state.PlayerHealth[i] != 0 {
 					go p.Write([]byte(fmt.Sprintf(
 						"Got attack from player[%d], current health: %d",
-						msg.PeerId, state.PlayerHealth[i],
+						msg.Peer.Id(), state.PlayerHealth[i],
 					)))
 				} else {
 					go p.Write([]byte(fmt.Sprintf(
 						"Got attack from player[%d], you are dead.\n Entering watcher mode.",
-						msg.PeerId,
+						msg.Peer.Id(),
 					)))
 					state.AlivePlayerCount--
 				}
 			} else { // dead player in watcher mode
 				go p.Write([]byte(fmt.Sprintf(
 					"Player[%d] initiated attack",
-					msg.PeerId,
+					msg.Peer.Id(),
 				)))
 			}
 		}
-	}
+	})
 
 	// game end?
 	if state.AlivePlayerCount == 1 { // the attacker won
-		broadcastSync(gs.GetPeers(), []byte(fmt.Sprintf(
+		broadcastSync(gs, []byte(fmt.Sprintf(
 			"Game Over.\nPlayer[%d] won!\n",
-			msg.PeerId,
+			msg.Peer.Id(),
 		)))
 		state.Over = true
 		gs.Stop()
 	}
 }
 
-func broadcastSync(peers map[int]rua.Peer, msg []byte) {
+func broadcastSync(s *rua.EventDrivenServer, msg []byte) {
 	var wg sync.WaitGroup
-	for _, p := range peers {
+	s.ForEachPeer(func(id int, peer rua.Peer) {
 		wg.Add(1)
-		go func(p rua.Peer) {
-			p.Write(msg)
+		go func() {
+			peer.Write(msg)
 			wg.Done()
-		}(p)
-	}
+		}()
+	})
 	wg.Wait()
 }

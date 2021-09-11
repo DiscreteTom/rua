@@ -11,10 +11,11 @@ import (
 var upgrader = websocket.Upgrader{}
 
 type websocketListener struct {
+	name     string
 	addr     string
 	path     string
 	gs       rua.GameServer
-	guardian func(w http.ResponseWriter, r *http.Request, gs rua.GameServer) bool
+	guardian func(w http.ResponseWriter, r *http.Request) bool
 	peerTag  string
 	logger   rua.Logger
 	certFile string
@@ -23,15 +24,21 @@ type websocketListener struct {
 
 func NewWebsocketListener(addr string, gs rua.GameServer) *websocketListener {
 	return &websocketListener{
+		name:     "WebsocketListener",
 		addr:     addr,
 		path:     "/",
 		gs:       gs,
 		guardian: nil,
 		peerTag:  "websocket",
-		logger:   rua.GetDefaultLogger(),
+		logger:   rua.DefaultLogger(),
 		certFile: "",
 		keyFile:  "",
 	}
+}
+
+func (l *websocketListener) WithName(n string) *websocketListener {
+	l.name = n
+	return l
 }
 
 func (l *websocketListener) WithLogger(logger rua.Logger) *websocketListener {
@@ -55,14 +62,14 @@ func (l *websocketListener) WithTLS(certFile, keyFile string) *websocketListener
 	return l
 }
 
-func (l *websocketListener) WithGuardian(g func(w http.ResponseWriter, r *http.Request, gs rua.GameServer) bool) *websocketListener {
+func (l *websocketListener) WithGuardian(g func(w http.ResponseWriter, r *http.Request) bool) *websocketListener {
 	l.guardian = g
 	return l
 }
 
 func (l *websocketListener) Start() error {
 	http.HandleFunc(l.path, func(w http.ResponseWriter, r *http.Request) {
-		if l.guardian == nil || l.guardian(w, r, l.gs) {
+		if l.guardian == nil || l.guardian(w, r) {
 			// upgrade http to websocket
 			c, err := upgrader.Upgrade(w, r, nil)
 			if err != nil {
@@ -73,7 +80,7 @@ func (l *websocketListener) Start() error {
 			l.gs.AddPeer(NewWebsocketPeer(c, l.gs).WithLogger(l.logger).WithTag(l.peerTag))
 		}
 	})
-	l.logger.Info("websocket listener is listening at", l.addr)
+	l.logger.Infof("%s is listening at %s", l.name, l.addr)
 
 	if len(l.certFile) != 0 && len(l.keyFile) != 0 {
 		return http.ListenAndServeTLS(l.addr, l.certFile, l.keyFile, nil)

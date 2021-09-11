@@ -1,52 +1,54 @@
 package websocket
 
 import (
-	"sync"
-
 	"github.com/DiscreteTom/rua"
+	"github.com/DiscreteTom/rua/peer"
 
 	"github.com/gorilla/websocket"
 )
 
-func NewWebsocketPeer(c *websocket.Conn, gs rua.GameServer) *rua.BasicPeer {
-	lock := sync.Mutex{}
-	closed := false
+type WebsocketPeer struct {
+	*peer.SafePeer
+	closed bool
+	c      *websocket.Conn
+}
 
-	return rua.NewBasicPeer(gs).
-		WithTag("websocket").
-		OnWrite(func(data []byte, p *rua.BasicPeer) error {
-			// prevent concurrent write
-			lock.Lock()
-			defer lock.Unlock()
+func NewWebsocketPeer(c *websocket.Conn, gs rua.GameServer) *WebsocketPeer {
+	wp := &WebsocketPeer{
+		SafePeer: peer.NewSafePeer(gs),
+		closed:   false,
+		c:        c,
+	}
 
-			return c.WriteMessage(websocket.BinaryMessage, data)
+	wp.SafePeer.
+		OnWriteSafe(func(data []byte) error {
+			return wp.c.WriteMessage(websocket.BinaryMessage, data)
 		}).
-		OnClose(func(p *rua.BasicPeer) error {
-			// wait for write finished
-			lock.Lock()
-			defer lock.Unlock()
-
-			closed = true
-			return c.Close() // close websocket conn
+		OnCloseSafe(func() error {
+			wp.closed = true
+			return wp.c.Close() // close websocket conn
 		}).
-		OnStart(func(p *rua.BasicPeer) {
+		OnStart(func() {
 			for {
-				_, msg, err := c.ReadMessage()
+				_, msg, err := wp.c.ReadMessage()
 				if err != nil {
 					// normally closed by server or client?
 					if !websocket.IsCloseError(err, websocket.CloseNoStatusReceived) {
-						p.GetLogger().Error(err)
+						wp.Logger().Error(err)
 					}
-					if !closed {
+					if !wp.closed {
 						// not closed by Close(), we should remove the peer
-						if err := p.GetGameServer().RemovePeer(p.GetId()); err != nil {
-							p.GetLogger().Error(err)
+						if err := wp.GameServer().RemovePeer(wp.Id()); err != nil {
+							wp.Logger().Error(err)
 						}
 					}
 					break
 				}
 
-				p.GetGameServer().AppendPeerMsg(p.GetId(), msg)
+				wp.GameServer().AppendPeerMsg(wp, msg)
 			}
-		})
+		}).
+		WithTag("websocket")
+
+	return wp
 }
