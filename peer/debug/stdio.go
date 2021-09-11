@@ -13,13 +13,10 @@ type StdioPeer struct {
 	*peer.SafePeer
 }
 
-func NewStdioPeer(gs rua.GameServer) (*StdioPeer, error) {
+func NewStdioPeer(gs rua.GameServer) *StdioPeer {
 	p := &StdioPeer{}
 
-	sp, err := peer.NewSafePeer(gs)
-	if err != nil {
-		return nil, err
-	}
+	sp := peer.NewSafePeer(gs)
 
 	sp.SetTag("stdio")
 
@@ -42,5 +39,5 @@ func NewStdioPeer(gs rua.GameServer) (*StdioPeer, error) {
 	})
 
 	p.SafePeer = sp
-	return p, nil
+	return p
 }

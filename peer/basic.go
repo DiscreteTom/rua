@@ -14,7 +14,7 @@ type BasicPeer struct {
 
 // Create a basic peer.
 // You can use BasicPeer.OnWrite(), BasicPeer.OnClose(), BasicPeer.OnStart() to register lifecycle hooks.
-func NewBasicPeer(gs rua.GameServer) (*BasicPeer, error) {
+func NewBasicPeer(gs rua.GameServer) *BasicPeer {
 	bp := &BasicPeer{
 		gs:      gs,
 		tag:     "basic",
@@ -24,7 +24,7 @@ func NewBasicPeer(gs rua.GameServer) (*BasicPeer, error) {
 		onStart: func() {},
 	}
 
-	return bp, nil
+	return bp
 }
 
 // This hook may be triggered concurrently

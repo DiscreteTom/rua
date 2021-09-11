@@ -16,12 +16,8 @@ type LockstepServer struct {
 	onStepHandler func(peerMsgs []PeerMsg) // lifecycle hook
 }
 
-func NewLockstepServer() (*LockstepServer, error) {
-	s, err := NewEventDrivenServer()
-	if err != nil {
-		return nil, err
-	}
-
+func NewLockstepServer() *LockstepServer {
+	s := NewEventDrivenServer()
 	s.SetName("LockstepServer")
 
 	return &LockstepServer{
@@ -33,7 +29,7 @@ func NewLockstepServer() (*LockstepServer, error) {
 		maxStepLength:     200, // 5 step/second
 		minStepLength:     8,   // ~120 step/second
 		onStepHandler:     func(peerMsgs []PeerMsg) {},
-	}, nil
+	}
 }
 
 // Set the current step length.

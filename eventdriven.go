@@ -20,7 +20,7 @@ type EventDrivenServer struct {
 	logger                   Logger
 }
 
-func NewEventDrivenServer() (*EventDrivenServer, error) {
+func NewEventDrivenServer() *EventDrivenServer {
 	return &EventDrivenServer{
 		name:                     "EventDrivenServer",
 		stop:                     make(chan bool),
@@ -33,7 +33,7 @@ func NewEventDrivenServer() (*EventDrivenServer, error) {
 		beforeProcPeerMsgHandler: func(m *PeerMsg) {},
 		onPeerMsgHandler:         func(m *PeerMsg) {},
 		logger:                   DefaultLogger(),
-	}, nil
+	}
 }
 
 func (s *EventDrivenServer) SetName(n string) {

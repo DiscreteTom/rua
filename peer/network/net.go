@@ -20,7 +20,7 @@ type NetPeer struct {
 
 // Create a peer with a connection of `net.Conn`.
 // If `timeout` == 0 (in ms), there is no timeout.
-func NewNetPeer(conn net.Conn, gs rua.GameServer) (*NetPeer, error) {
+func NewNetPeer(conn net.Conn, gs rua.GameServer) *NetPeer {
 	np := &NetPeer{
 		closed:       false,
 		bufSize:      4096,
@@ -29,12 +29,9 @@ func NewNetPeer(conn net.Conn, gs rua.GameServer) (*NetPeer, error) {
 		c:            conn,
 	}
 
-	sp, err := peer.NewSafePeer(gs)
-	if err != nil {
-		return nil, err
-	}
-
+	sp := peer.NewSafePeer(gs)
 	sp.SetTag("net")
+
 	sp.OnWriteSafe(func(data []byte) error {
 		if !np.closed {
 			if np.writeTimeout != 0 {
@@ -80,7 +77,7 @@ func NewNetPeer(conn net.Conn, gs rua.GameServer) (*NetPeer, error) {
 	})
 
 	np.SafePeer = sp
-	return np, nil
+	return np
 }
 
 func (np *NetPeer) SetBufSize(n int) {

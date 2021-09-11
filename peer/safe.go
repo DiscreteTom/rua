@@ -11,19 +11,16 @@ type SafePeer struct {
 	lock *sync.Mutex
 }
 
-func NewSafePeer(gs rua.GameServer) (*SafePeer, error) {
+func NewSafePeer(gs rua.GameServer) *SafePeer {
 	sp := &SafePeer{
 		lock: &sync.Mutex{},
 	}
 
-	bp, err := NewBasicPeer(gs)
-	if err != nil {
-		return nil, err
-	}
-
+	bp := NewBasicPeer(gs)
 	bp.SetTag("safe")
+
 	sp.BasicPeer = bp
-	return sp, nil
+	return sp
 }
 
 // This hook can be safely triggered concurrently.
