@@ -2,6 +2,7 @@
 
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/DiscreteTom/rua?style=flat-square)
 ![GitHub](https://img.shields.io/github/license/DiscreteTom/rua?style=flat-square)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/DiscreteTom/rua?style=flat-square)
 
 > [English README](#english)
 
