@@ -21,7 +21,7 @@ type PeerMsg struct {
 type GameServer interface {
 	AddPeer(Peer) int
 	RemovePeer(peerId int) error
-	Peers() map[int]Peer
+	ForEachPeer(f func(id int, peer Peer))
 	AppendPeerMsg(peerId int, d []byte)
 	Start() []error
 	Stop()
