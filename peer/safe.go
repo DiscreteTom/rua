@@ -11,23 +11,17 @@ type SafePeer struct {
 	lock *sync.Mutex
 }
 
-func NewSafePeer(gs rua.GameServer, options ...BasicPeerOption) (*SafePeer, error) {
+func NewSafePeer(gs rua.GameServer) (*SafePeer, error) {
 	sp := &SafePeer{
 		lock: &sync.Mutex{},
 	}
 
-	bp, err := NewBasicPeer(
-		gs,
-		Tag("safe"),
-	)
+	bp, err := NewBasicPeer(gs)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := bp.With(options...); err != nil {
-		return nil, err
-	}
-
+	bp.SetTag("safe")
 	sp.BasicPeer = bp
 	return sp, nil
 }
