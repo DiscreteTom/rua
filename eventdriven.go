@@ -7,6 +7,7 @@ import (
 )
 
 type EventDrivenServer struct {
+	name                     string
 	stop                     chan bool
 	handleKeyboardInterrupt  bool
 	peers                    map[int]Peer       // peer id starts from 0
@@ -22,6 +23,7 @@ type EventDrivenServer struct {
 
 func NewEventDrivenServer() (*EventDrivenServer, error) {
 	return &EventDrivenServer{
+		name:                     "EventDrivenServer",
 		stop:                     make(chan bool),
 		peers:                    map[int]Peer{},
 		peerLock:                 &sync.Mutex{},
@@ -33,6 +35,10 @@ func NewEventDrivenServer() (*EventDrivenServer, error) {
 		onPeerMsgHandler:         func(m *PeerMsg) {},
 		logger:                   DefaultLogger(),
 	}, nil
+}
+
+func (s *EventDrivenServer) SetName(n string) {
+	s.name = n
 }
 
 func (s *EventDrivenServer) SetLogger(l Logger) {
@@ -75,7 +81,7 @@ func (s *EventDrivenServer) RemovePeer(peerId int) (err error) {
 	s.peerLock.Lock()
 	if peer, ok := s.peers[peerId]; ok {
 		if err := peer.Close(); err != nil {
-			s.logger.Error("rua.EventDrivenServer.RemovePeer:", err)
+			s.logger.Errorf("rua.%s.RemovePeer: %s", s.name, err)
 		}
 		delete(s.peers, peerId)
 	} else {
@@ -144,7 +150,7 @@ func (s *EventDrivenServer) OnPeerMsg(f func(m *PeerMsg)) {
 func (s *EventDrivenServer) Start() (errs []error) {
 	errs = []error{}
 
-	s.logger.Info("eventdriven server started")
+	s.logger.Infof("%s started", s.name)
 
 	<-s.stop
 
