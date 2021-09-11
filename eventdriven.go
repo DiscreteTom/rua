@@ -52,6 +52,8 @@ func (s *EventDrivenServer) Logger() Logger {
 
 // Activate a peer, allocate a peerId and manage the peer's lifecycle.
 func (s *EventDrivenServer) AddPeer(p Peer) int {
+	s.beforeAddPeerHandler(p)
+
 	s.peerLock.Lock()
 
 	// allocate a peerId
@@ -65,7 +67,6 @@ func (s *EventDrivenServer) AddPeer(p Peer) int {
 	}
 
 	p.SetId(peerId)
-	s.beforeAddPeerHandler(p)
 	s.peers[peerId] = p
 
 	s.peerLock.Unlock()
@@ -118,7 +119,7 @@ func (s *EventDrivenServer) PeerCount() int {
 }
 
 // Register lifecycle hook.
-// At this time the new peer's id has been allocated, but the new peer is not started, and `peers` does not contain the new peer.
+// At this time the new peer's id has NOT been allocated, the new peer is not started, and `peers` does not contain the new peer.
 // This hook won't be triggered concurrently.
 func (s *EventDrivenServer) BeforeAddPeer(f func(newPeer Peer)) *EventDrivenServer {
 	s.beforeAddPeerHandler = f
