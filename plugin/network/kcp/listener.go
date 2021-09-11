@@ -20,7 +20,7 @@ type KcpListener struct {
 	crypt            string
 	peerReadTimeout  int // in ms
 	peerWriteTimeout int // in ms
-	guardian         func(c *kcp.UDPSession, gs rua.GameServer) bool
+	guardian         func(c *kcp.UDPSession) bool
 	peerTag          string
 	logger           rua.Logger
 	maxAttempts      int
@@ -80,7 +80,7 @@ func (l *KcpListener) WithPeerWriteTimeout(t int) *KcpListener {
 	return l
 }
 
-func (l *KcpListener) WithGuardian(g func(c *kcp.UDPSession, gs rua.GameServer) bool) *KcpListener {
+func (l *KcpListener) WithGuardian(g func(c *kcp.UDPSession) bool) *KcpListener {
 	l.guardian = g
 	return l
 }
@@ -118,7 +118,7 @@ func (l *KcpListener) Start() error {
 			}
 		} else { // err == nil
 			attempts = 0
-			if l.guardian == nil || l.guardian(c, l.gs) {
+			if l.guardian == nil || l.guardian(c) {
 				con, err := l.upgrader(c)
 				if err != nil {
 					l.logger.Warn("ruaKcp.Start.Guardian:", err)
