@@ -24,10 +24,8 @@ func NewSafePeer(gs rua.GameServer, options ...BasicPeerOption) (*SafePeer, erro
 		return nil, err
 	}
 
-	for _, o := range options {
-		if err := o(bp); err != nil {
-			return nil, err
-		}
+	if err := bp.With(options...); err != nil {
+		return nil, err
 	}
 
 	sp.BasicPeer = bp
