@@ -13,9 +13,8 @@ import (
 
 func main() {
 	errChan := make(chan error)
-	s := rua.NewLockstepServer().
-		SetHandleKeyboardInterrupt(true).
-		OnStep(dynamicStepHandler)
+	s := rua.NewLockstepServer()
+	s.OnStep(dynamicStepHandler(s))
 
 	key := pbkdf2.Key([]byte("demo pass"), []byte("demo salt"), 1024, 32, sha1.New)
 	go func() {
@@ -29,34 +28,37 @@ func main() {
 
 	select {
 	case err := <-errChan:
-		s.GetLogger().Error("server.KcpSmuxListener:", err)
+		s.Logger().Error("server.KcpSmuxListener:", err)
 	case errs := <-serverErrsChan:
 		if len(errs) != 0 {
-			s.GetLogger().Error("server.LockstepServer:", errs)
+			s.Logger().Error("server.LockstepServer:", errs)
 		}
 		break
 	}
 }
 
 // Change step length according to the 1st msg's latency.
-func dynamicStepHandler(msgs []rua.PeerMsg, s *rua.LockstepServer) {
-	if len(msgs) != 0 && len(msgs[0].Data) == 8 {
-		sendTime := int64(binary.LittleEndian.Uint64(msgs[0].Data))
-		recvTime := msgs[0].Time.UnixMilli()
-		rtt := int(recvTime - sendTime) // round trip time
+func dynamicStepHandler(s *rua.LockstepServer) func(msgs []rua.PeerMsg) {
+	return func(msgs []rua.PeerMsg) {
 
-		s.GetLogger().Infof("rtt(ms): %d", rtt)
-		s.SetStepLength(rtt)
-		s.GetLogger().Infof("new step length: %d", s.GetCurrentStepLength())
-	}
+		if len(msgs) != 0 && len(msgs[0].Data) == 8 {
+			sendTime := int64(binary.LittleEndian.Uint64(msgs[0].Data))
+			recvTime := msgs[0].Time.UnixMilli()
+			rtt := int(recvTime - sendTime) // round trip time
 
-	// broadcast current time
-	buf := make([]byte, 8)
-	currentTime := time.Now().UnixMilli()
-	binary.LittleEndian.PutUint64(buf, uint64(currentTime))
-	for _, p := range s.GetPeers() {
-		if err := p.Write(buf); err != nil {
-			s.GetLogger().Error("server.Broadcast.Write:", err)
+			s.Logger().Infof("rtt(ms): %d", rtt)
+			s.WithStepLength(rtt)
+			s.Logger().Infof("new step length: %d", s.CurrentStepLength())
 		}
+
+		// broadcast current time
+		buf := make([]byte, 8)
+		currentTime := time.Now().UnixMilli()
+		binary.LittleEndian.PutUint64(buf, uint64(currentTime))
+		s.ForEachPeer(func(_ int, p rua.Peer) {
+			if err := p.Write(buf); err != nil {
+				s.Logger().Error("server.Broadcast.Write:", err)
+			}
+		})
 	}
 }
