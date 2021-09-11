@@ -15,30 +15,29 @@ type FilePeer struct {
 
 func NewFilePeer(filename string, gs rua.GameServer) *FilePeer {
 	fp := &FilePeer{
+		SafePeer: peer.NewSafePeer(gs),
 		filename: filename,
 	}
 
-	sp := peer.NewSafePeer(gs)
-	sp.SetTag("file")
+	fp.SafePeer.
+		OnStartSafe(func() {
+			var err error
+			fp.file, err = os.OpenFile(fp.filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+			if err != nil {
+				fp.Logger().Error("rua.FileOpenFile:", err)
+				return
+			}
+		}).
+		OnWriteSafe(func(data []byte) error {
+			if _, err := fp.file.Write(data); err != nil {
+				return err
+			}
+			return fp.file.Sync() // flush to disk
+		}).
+		OnCloseSafe(func() error {
+			return fp.file.Close() // close connection
+		}).
+		WithTag("file")
 
-	sp.OnStartSafe(func() {
-		var err error
-		fp.file, err = os.OpenFile(fp.filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
-		if err != nil {
-			fp.Logger().Error("rua.FileOpenFile:", err)
-			return
-		}
-	})
-	sp.OnWriteSafe(func(data []byte) error {
-		if _, err := fp.file.Write(data); err != nil {
-			return err
-		}
-		return fp.file.Sync() // flush to disk
-	})
-	sp.OnCloseSafe(func() error {
-		return fp.file.Close() // close connection
-	})
-
-	fp.SafePeer = sp
 	return fp
 }

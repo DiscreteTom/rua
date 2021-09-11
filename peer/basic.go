@@ -15,7 +15,7 @@ type BasicPeer struct {
 // Create a basic peer.
 // You can use BasicPeer.OnWrite(), BasicPeer.OnClose(), BasicPeer.OnStart() to register lifecycle hooks.
 func NewBasicPeer(gs rua.GameServer) *BasicPeer {
-	bp := &BasicPeer{
+	return &BasicPeer{
 		gs:      gs,
 		tag:     "basic",
 		logger:  rua.DefaultLogger(),
@@ -23,27 +23,29 @@ func NewBasicPeer(gs rua.GameServer) *BasicPeer {
 		onClose: func() error { return nil },
 		onStart: func() {},
 	}
+}
 
+// This hook may be triggered concurrently
+func (bp *BasicPeer) OnWrite(f func(data []byte) error) *BasicPeer {
+	bp.onWrite = f
 	return bp
 }
 
 // This hook may be triggered concurrently
-func (bp *BasicPeer) OnWrite(f func(data []byte) error) {
-	bp.onWrite = f
-}
-
-// This hook may be triggered concurrently
-func (bp *BasicPeer) OnClose(f func() error) {
+func (bp *BasicPeer) OnClose(f func() error) *BasicPeer {
 	bp.onClose = f
+	return bp
 }
 
 // This hook may NOT be triggered concurrently
-func (bp *BasicPeer) OnStart(f func()) {
+func (bp *BasicPeer) OnStart(f func()) *BasicPeer {
 	bp.onStart = f
+	return bp
 }
 
-func (bp *BasicPeer) SetLogger(l rua.Logger) {
+func (bp *BasicPeer) WithLogger(l rua.Logger) *BasicPeer {
 	bp.logger = l
+	return bp
 }
 
 func (bp *BasicPeer) Logger() rua.Logger {
@@ -52,6 +54,11 @@ func (bp *BasicPeer) Logger() rua.Logger {
 
 func (bp *BasicPeer) SetTag(t string) {
 	bp.tag = t
+}
+
+func (bp *BasicPeer) WithTag(t string) *BasicPeer {
+	bp.tag = t
+	return bp
 }
 
 func (bp *BasicPeer) Tag() string {

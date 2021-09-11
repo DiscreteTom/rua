@@ -14,30 +14,29 @@ type StdioPeer struct {
 }
 
 func NewStdioPeer(gs rua.GameServer) *StdioPeer {
-	p := &StdioPeer{}
+	p := &StdioPeer{
+		SafePeer: peer.NewSafePeer(gs),
+	}
 
-	sp := peer.NewSafePeer(gs)
-
-	sp.SetTag("stdio")
-
-	sp.OnWriteSafe(func(data []byte) error {
-		_, err := fmt.Print(string(data))
-		return err
-	})
-	sp.OnCloseSafe(func() error {
-		return nil
-	})
-	sp.OnStart(func() {
-		reader := bufio.NewReader(os.Stdin)
-		for {
-			line, err := reader.ReadString('\n')
-			if err != nil && err.Error() != "EOF" {
-				p.Logger().Error("rua.StdioReadString:", err)
+	p.SafePeer.
+		OnWriteSafe(func(data []byte) error {
+			_, err := fmt.Print(string(data))
+			return err
+		}).
+		OnCloseSafe(func() error {
+			return nil
+		}).
+		OnStart(func() {
+			reader := bufio.NewReader(os.Stdin)
+			for {
+				line, err := reader.ReadString('\n')
+				if err != nil && err.Error() != "EOF" {
+					p.Logger().Error("rua.StdioReadString:", err)
+				}
+				p.GameServer().AppendPeerMsg(p, []byte(line))
 			}
-			p.GameServer().AppendPeerMsg(p, []byte(line))
-		}
-	})
+		}).
+		WithTag("stdio")
 
-	p.SafePeer = sp
 	return p
 }

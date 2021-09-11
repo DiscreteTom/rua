@@ -17,11 +17,8 @@ type LockstepServer struct {
 }
 
 func NewLockstepServer() *LockstepServer {
-	s := NewEventDrivenServer()
-	s.SetName("LockstepServer")
-
 	return &LockstepServer{
-		EventDrivenServer: s,
+		EventDrivenServer: NewEventDrivenServer().WithName("LockstepServer"),
 		peerMsgs:          []PeerMsg{},
 		peerMsgsLock:      &sync.Mutex{},
 		currentStep:       0,
@@ -34,7 +31,7 @@ func NewLockstepServer() *LockstepServer {
 
 // Set the current step length.
 // The step length won't be higher than `maxStepLength` and lower than `minStepLength`.
-func (s *LockstepServer) SetStepLength(stepLength int) {
+func (s *LockstepServer) WithStepLength(stepLength int) *LockstepServer {
 	if stepLength > s.maxStepLength {
 		s.stepLength = s.maxStepLength
 	} else if stepLength < s.minStepLength {
@@ -42,22 +39,25 @@ func (s *LockstepServer) SetStepLength(stepLength int) {
 	} else {
 		s.stepLength = stepLength
 	}
+	return s
 }
 
 // Set the max step length and ensure the current step length is valid.
-func (s *LockstepServer) SetMaxStepLength(maxStepLength int) {
+func (s *LockstepServer) WithMaxStepLength(maxStepLength int) *LockstepServer {
 	s.maxStepLength = maxStepLength
 	if s.stepLength > s.maxStepLength {
 		s.stepLength = s.maxStepLength
 	}
+	return s
 }
 
 // Set the min step length and ensure the current step length is valid.
-func (s *LockstepServer) SetMinStepLength(minStepLength int) {
+func (s *LockstepServer) WithMinStepLength(minStepLength int) *LockstepServer {
 	s.minStepLength = minStepLength
 	if s.stepLength < s.minStepLength {
 		s.stepLength = s.minStepLength
 	}
+	return s
 }
 
 func (s *LockstepServer) CurrentStepLength() int {
@@ -70,8 +70,9 @@ func (s *LockstepServer) CurrentStep() int {
 
 // Register lifecycle hook.
 // This hook may be triggered concurrently.
-func (s *LockstepServer) OnStep(f func(peerMsgs []PeerMsg)) {
+func (s *LockstepServer) OnStep(f func(peerMsgs []PeerMsg)) *LockstepServer {
 	s.onStepHandler = f
+	return s
 }
 
 // Return errors from peer.Close() when stop the server.
