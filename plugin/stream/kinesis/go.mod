@@ -3,7 +3,7 @@ module github.com/DiscreteTom/rua/plugin/stream/kinesis
 go 1.17
 
 require (
-	github.com/DiscreteTom/rua v0.3.0
+	github.com/DiscreteTom/rua v0.4.0
 	github.com/aws/aws-sdk-go-v2/config v1.6.1
 	github.com/aws/aws-sdk-go-v2/service/kinesis v1.5.3
 )

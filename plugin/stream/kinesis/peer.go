@@ -2,45 +2,53 @@ package kinesis
 
 import (
 	"context"
-	"sync"
 
 	"github.com/DiscreteTom/rua"
+	"github.com/DiscreteTom/rua/peer"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
 )
 
-func NewKinesisPeer(region string, gs rua.GameServer, streamName string, partitionKey string) *rua.BasicPeer {
-	lock := sync.Mutex{}
-	var client *kinesis.Client
+type KinesisPeer struct {
+	*peer.SafePeer
+	region       string
+	streamName   string
+	partitionKey string
+	client       *kinesis.Client
+}
 
-	return rua.NewBasicPeer(gs).
-		WithTag("kinesis").
-		OnWrite(func(data []byte, p *rua.BasicPeer) error {
-			// prevent concurrent write
-			lock.Lock()
-			defer lock.Unlock()
+func NewKinesisPeer(region string, streamName string, partitionKey string, gs rua.GameServer) *KinesisPeer {
+	kp := &KinesisPeer{
+		SafePeer:     peer.NewSafePeer(gs),
+		region:       region,
+		streamName:   streamName,
+		partitionKey: partitionKey,
+		client:       nil,
+	}
 
-			_, err := client.PutRecord(context.TODO(), &kinesis.PutRecordInput{
+	kp.SafePeer.
+		OnWriteSafe(func(data []byte) error {
+			_, err := kp.client.PutRecord(context.TODO(), &kinesis.PutRecordInput{
 				Data:         data,
 				PartitionKey: &partitionKey,
 				StreamName:   &streamName,
 			})
 			return err
 		}).
-		OnClose(func(p *rua.BasicPeer) error {
-			// wait after write finished
-			lock.Lock()
-			defer lock.Unlock()
+		OnCloseSafe(func() error {
 			return nil
 		}).
-		OnStart(func(p *rua.BasicPeer) {
+		OnStart(func() {
 			cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region))
 			if err != nil {
-				p.GetLogger().Error(err)
-				p.GetGameServer().RemovePeer(p.GetId())
+				kp.Logger().Error(err)
+				kp.GameServer().RemovePeer(kp.Id())
 				return
 			}
 
-			client = kinesis.NewFromConfig(cfg)
-		})
+			kp.client = kinesis.NewFromConfig(cfg)
+		}).
+		WithTag("kinesis")
+
+	return kp
 }
