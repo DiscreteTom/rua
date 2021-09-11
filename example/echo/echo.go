@@ -2,22 +2,21 @@ package main
 
 import (
 	"github.com/DiscreteTom/rua"
-	"github.com/DiscreteTom/rua/peers/debug"
+	"github.com/DiscreteTom/rua/peer/debug"
 )
 
 func main() {
-	s := rua.NewEventDrivenServer().
-		SetHandleKeyboardInterrupt(true).
-		OnPeerMsg(func(msg *rua.PeerMsg, s *rua.EventDrivenServer) {
-			if err := s.GetPeer(msg.PeerId).Write(msg.Data); err != nil {
-				s.GetLogger().Error(err)
-			}
-		})
+	s, _ := rua.NewEventDrivenServer()
+	s.OnPeerMsg(func(msg *rua.PeerMsg) {
+		if err := msg.Peer.Write(append([]byte(">>"), msg.Data...)); err != nil {
+			s.Logger().Error(err)
+		}
+	})
 
 	if p, err := debug.NewStdioPeer(s); err != nil {
-		s.AddPeer(p)
+		s.Logger().Error(err)
 	} else {
-		s.GetLogger().Error(err)
+		s.AddPeer(p)
 	}
 	s.Start()
 }
