@@ -13,7 +13,7 @@ type StdioPeer struct {
 	*peer.SafePeer
 }
 
-func NewStdioPeer(gs rua.GameServer) (*StdioPeer, error) {
+func NewStdioPeer(gs rua.GameServer, options ...peer.BasicPeerOption) (*StdioPeer, error) {
 	p := &StdioPeer{}
 
 	sp, err := peer.NewSafePeer(
@@ -23,6 +23,11 @@ func NewStdioPeer(gs rua.GameServer) (*StdioPeer, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if err := sp.With(options...); err != nil {
+		return nil, err
+	}
+
 	sp.OnWriteSafe(func(data []byte) error {
 		_, err := fmt.Print(string(data))
 		return err
