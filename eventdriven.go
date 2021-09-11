@@ -9,7 +9,6 @@ import (
 type EventDrivenServer struct {
 	name                     string
 	stop                     chan bool
-	handleKeyboardInterrupt  bool
 	peers                    map[int]Peer       // peer id starts from 0
 	peerLock                 *sync.Mutex        // prevent concurrent access
 	beforeAddPeerHandler     func(newPeer Peer) // lifecycle hook
