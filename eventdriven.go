@@ -113,6 +113,10 @@ func (s *EventDrivenServer) Peer(id int) (Peer, error) {
 	}
 }
 
+func (s *EventDrivenServer) PeerCount() int {
+	return len(s.peers)
+}
+
 // Register lifecycle hook.
 // At this time the new peer's id has been allocated, but the new peer is not started, and `peers` does not contain the new peer.
 // This hook won't be triggered concurrently.
