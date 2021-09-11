@@ -102,6 +102,15 @@ func (s *EventDrivenServer) ForEachPeer(f func(id int, peer Peer)) {
 	}
 }
 
+// Retrieve a peer. Return error if peer not exists.
+func (s *EventDrivenServer) Peer(id int) (Peer, error) {
+	if p, ok := s.peers[id]; ok {
+		return p, nil
+	} else {
+		return nil, errors.New("peer not exists")
+	}
+}
+
 // Register lifecycle hook.
 // At this time the new peer's id has been allocated, but the new peer is not started, and `peers` does not contain the new peer.
 // This hook won't be triggered concurrently.
