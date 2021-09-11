@@ -34,14 +34,16 @@ func main() {
 	s := rua.NewEventDrivenServer()
 
 	s.
-		BeforeAddPeer(func(newPeer rua.Peer) {
-			// notify existing players
-			broadcastSync(s, []byte(fmt.Sprintf(
-				"Player[%d] added. Current player count: %d",
-				newPeer.Id(), s.PeerCount()+1,
-			)))
-		}).
 		AfterAddPeer(func(newPeer rua.Peer) {
+			// notify existing peers
+			s.ForEachPeer(func(id int, peer rua.Peer) {
+				if id != newPeer.Id() {
+					peer.Write([]byte(fmt.Sprintf(
+						"Player[%d] added. Current player count: %d",
+						newPeer.Id(), s.PeerCount(),
+					)))
+				}
+			})
 			// notify the new Peer
 			newPeer.Write([]byte(fmt.Sprintf("Current player count: %d", s.PeerCount())))
 			// if all players are arrived, start the game and notify all players
