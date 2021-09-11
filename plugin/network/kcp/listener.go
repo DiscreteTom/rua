@@ -5,7 +5,7 @@ import (
 	"net"
 
 	"github.com/DiscreteTom/rua"
-	"github.com/DiscreteTom/rua/peers/network"
+	"github.com/DiscreteTom/rua/peer/network"
 
 	"github.com/xtaci/kcp-go/v5"
 )
@@ -40,7 +40,7 @@ func NewKcpListener(addr string, gs rua.GameServer, key []byte, bufSize int) *Kc
 		peerWriteTimeout: 1000,
 		guardian:         nil,
 		peerTag:          "kcp",
-		logger:           rua.GetDefaultLogger(),
+		logger:           rua.DefaultLogger(),
 		maxAttempts:      10,
 		upgrader:         func(c *kcp.UDPSession) (net.Conn, error) { return c, nil },
 	}
@@ -124,7 +124,10 @@ func (l *KcpListener) Start() error {
 					l.logger.Warn("ruaKcp.Start.Guardian:", err)
 				} else {
 					l.gs.AddPeer(
-						network.NewNetPeer(con, l.gs, l.bufSize, l.peerReadTimeout, l.peerWriteTimeout).
+						network.NewNetPeer(con, l.gs).
+							WithBufSize(l.bufSize).
+							WithReadTimeout(l.peerReadTimeout).
+							WithWriteTimeout(l.peerWriteTimeout).
 							WithLogger(l.logger).
 							WithTag(l.peerTag),
 					)

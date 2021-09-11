@@ -1,5 +1,15 @@
 github.com/DiscreteTom/rua v0.3.0 h1:W4UCEb5UOk5s6Hu5AY34lkP67NO0WeDaEKg8MZ9DaCk=
 github.com/DiscreteTom/rua v0.3.0/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
+github.com/DiscreteTom/rua v0.3.1-0.20210911042808-7ef5e22cc0ba h1:CkGhDACW77Q0Wo+O+mIg3XrziSJ+0x29iyGRp1yXQuk=
+github.com/DiscreteTom/rua v0.3.1-0.20210911042808-7ef5e22cc0ba/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
+github.com/DiscreteTom/rua v0.3.1-0.20210911045021-79c0134a6b98 h1:K9Bk9wgrexuxwMy85ar0cwqsUbngnqqD13KNHvnj3jg=
+github.com/DiscreteTom/rua v0.3.1-0.20210911045021-79c0134a6b98/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
+github.com/DiscreteTom/rua v0.3.1-0.20210911053232-526bd211217d h1:YslTZJWpwmYbbc/dDg5lGLJQjnvB21NPib3XZVSScTQ=
+github.com/DiscreteTom/rua v0.3.1-0.20210911053232-526bd211217d/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
+github.com/DiscreteTom/rua v0.3.1-0.20210911055425-af869f523d04 h1:M6fBVnqIUpHOn1PrHjnTcpoOttSTu3f2i16ta551M+A=
+github.com/DiscreteTom/rua v0.3.1-0.20210911055425-af869f523d04/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
+github.com/DiscreteTom/rua v0.4.0 h1:3X2assGaoiketWBHLDAggwOn4lW62Q+yAr14x77wjjA=
+github.com/DiscreteTom/rua v0.4.0/go.mod h1:4RyWV4JchmGf8n8kGoLtMXFb73ZBy+wTKez8iXarfCU=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/klauspost/cpuid v1.2.4/go.mod h1:Pj4uuM528wm8OyEC2QMXAi2YiTZ96dNQPGgoMS4s3ek=
