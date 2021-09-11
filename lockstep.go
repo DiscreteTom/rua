@@ -121,8 +121,8 @@ func (s *LockstepServer) Stop() {
 	s.stop <- true
 }
 
-func (s *LockstepServer) AppendPeerMsg(peerId int, d []byte) {
-	peerMsg := PeerMsg{PeerId: peerId, Data: d, Time: time.Now()}
+func (s *LockstepServer) AppendPeerMsg(p Peer, d []byte) {
+	peerMsg := PeerMsg{Peer: p, Data: d, Time: time.Now()}
 
 	// handle lifecycle hook
 	// this hook can modify peerMsg before append

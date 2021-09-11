@@ -13,16 +13,16 @@ type Peer interface {
 }
 
 type PeerMsg struct {
-	PeerId int
-	Data   []byte
-	Time   time.Time
+	Peer Peer
+	Data []byte
+	Time time.Time
 }
 
 type GameServer interface {
 	AddPeer(Peer) int
 	RemovePeer(peerId int) error
 	ForEachPeer(f func(id int, peer Peer))
-	AppendPeerMsg(peerId int, d []byte)
+	AppendPeerMsg(p Peer, d []byte)
 	Start() []error
 	Stop()
 }

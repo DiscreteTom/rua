@@ -74,7 +74,7 @@ func NewNetPeer(conn net.Conn, gs rua.GameServer) (*NetPeer, error) {
 					break
 				}
 			} else {
-				gs.AppendPeerMsg(np.Id(), buf[:n])
+				gs.AppendPeerMsg(np, buf[:n])
 			}
 		}
 	})

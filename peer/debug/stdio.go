@@ -37,7 +37,7 @@ func NewStdioPeer(gs rua.GameServer) (*StdioPeer, error) {
 			if err != nil && err.Error() != "EOF" {
 				p.Logger().Error("rua.StdioReadString:", err)
 			}
-			p.GameServer().AppendPeerMsg(p.Id(), []byte(line))
+			p.GameServer().AppendPeerMsg(p, []byte(line))
 		}
 	})
 
