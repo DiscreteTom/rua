@@ -1,8 +1,6 @@
 package websocket
 
 import (
-	"errors"
-
 	"github.com/DiscreteTom/rua"
 	"github.com/DiscreteTom/rua/peer"
 
@@ -25,13 +23,13 @@ func NewWebsocketPeer(c *websocket.Conn, gs rua.GameServer) *WebsocketPeer {
 	wp.SafePeer.
 		OnWriteSafe(func(data []byte) error {
 			if wp.closed {
-				return errors.New("peer already closed")
+				return peer.ErrClosed
 			}
 			return wp.c.WriteMessage(websocket.BinaryMessage, data)
 		}).
 		OnCloseSafe(func() error {
 			if wp.closed {
-				return errors.New("peer already closed")
+				return nil
 			}
 			wp.closed = true
 			return wp.c.Close() // close websocket conn
@@ -42,10 +40,10 @@ func NewWebsocketPeer(c *websocket.Conn, gs rua.GameServer) *WebsocketPeer {
 				if err != nil {
 					if !wp.closed { // not closed by Close()
 						// normally closed by client?
-						if !websocket.IsCloseError(err, websocket.CloseNoStatusReceived) {
-							wp.Logger().Error("rua.WebsocketPeer.OnStart:", err)
+						if websocket.IsCloseError(err, websocket.CloseNoStatusReceived) {
+							wp.Logger().Infof("rua.WebsocketPeer: peer %d disconnected", wp.Id())
 						} else {
-							wp.Logger().Info("rua.WebsocketPeer: peer", wp.Id(), "disconnected")
+							wp.Logger().Error("rua.WebsocketPeer.OnStart:", err)
 						}
 						// we should remove the peer
 						if err := wp.GameServer().RemovePeer(wp.Id()); err != nil {
