@@ -1,7 +1,6 @@
 package network
 
 import (
-	"errors"
 	"net"
 	"time"
 
@@ -32,20 +31,25 @@ func NewNetPeer(conn net.Conn, gs rua.GameServer) *NetPeer {
 
 	np.SafePeer.
 		OnWriteSafe(func(data []byte) error {
-			if !np.closed {
-				if np.writeTimeout != 0 {
-					if err := np.c.SetWriteDeadline(time.Now().Add(time.Duration(np.readTimeout) * time.Millisecond)); err != nil {
-						np.Logger().Error("rua.NetSetWriteDeadline:", err)
-					}
-				}
-				_, err := np.c.Write(data)
-				return err
+			if np.closed {
+				return peer.ErrClosed
 			}
-			return errors.New("peer already closed")
+
+			if np.writeTimeout != 0 {
+				if err := np.c.SetWriteDeadline(time.Now().Add(time.Duration(np.readTimeout) * time.Millisecond)); err != nil {
+					np.Logger().Error("rua.NetSetWriteDeadline:", err)
+				}
+			}
+			_, err := np.c.Write(data)
+			return err
 		}).
 		OnCloseSafe(func() error {
+			if np.closed {
+				return nil
+			}
+
 			np.closed = true
-			return np.c.Close() // close connection
+			return np.c.Close()
 		}).
 		OnStart(func() {
 			for {
