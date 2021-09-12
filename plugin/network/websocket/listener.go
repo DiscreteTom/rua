@@ -8,8 +8,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var upgrader = websocket.Upgrader{}
-
 type websocketListener struct {
 	name     string
 	addr     string
@@ -20,6 +18,7 @@ type websocketListener struct {
 	logger   rua.Logger
 	certFile string
 	keyFile  string
+	upgrader *websocket.Upgrader
 }
 
 func NewWebsocketListener(addr string, gs rua.GameServer) *websocketListener {
@@ -33,6 +32,7 @@ func NewWebsocketListener(addr string, gs rua.GameServer) *websocketListener {
 		logger:   rua.DefaultLogger(),
 		certFile: "",
 		keyFile:  "",
+		upgrader: &websocket.Upgrader{},
 	}
 }
 
@@ -71,7 +71,7 @@ func (l *websocketListener) Start() error {
 	http.HandleFunc(l.path, func(w http.ResponseWriter, r *http.Request) {
 		if l.guardian == nil || l.guardian(w, r) {
 			// upgrade http to websocket
-			c, err := upgrader.Upgrade(w, r, nil)
+			c, err := l.upgrader.Upgrade(w, r, nil)
 			if err != nil {
 				l.logger.Error("rua.WebsocketListener.Upgrade:", err)
 				return
