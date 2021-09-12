@@ -1,12 +1,16 @@
 # CHANGELOG
 
-## v0.4
+## v0.4.1
+
+- `EventDrivenServer.BeforeAddPeer` can not access the new peer's id.
+
+## v0.4.0
 
 - Optimize code.
 - Add SafePeer.
 - Almost all APIs are changed.
 
-## v0.3
+## v0.3.0
 
 - Supported server types:
   - LockstepServer.
