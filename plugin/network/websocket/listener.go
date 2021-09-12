@@ -67,6 +67,16 @@ func (l *websocketListener) WithGuardian(g func(w http.ResponseWriter, r *http.R
 	return l
 }
 
+func (l *websocketListener) WithOriginChecker(f func(r *http.Request) bool) *websocketListener {
+	l.upgrader.CheckOrigin = f
+	return l
+}
+
+func (l *websocketListener) WithAllOriginAllowed() *websocketListener {
+	l.upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+	return l
+}
+
 func (l *websocketListener) Start() error {
 	http.HandleFunc(l.path, func(w http.ResponseWriter, r *http.Request) {
 		if l.guardian == nil || l.guardian(w, r) {
