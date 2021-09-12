@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.4.2
+
+- Enhance peers' security.
+
 ## v0.4.1
 
 - `EventDrivenServer.BeforeAddPeer` can not access the new peer's id.
