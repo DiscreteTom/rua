@@ -36,7 +36,7 @@ jobs:
         run: |
           cd plugin/network/kcp-smux
           set -x
-          go get github.com/DiscreteTom/rua/plugin/network/kcp/@${KCP_VERSION}
+          go get github.com/DiscreteTom/rua/plugin/network/kcp@${KCP_VERSION}
           go mod tidy
       - name: setup git commit & tags
         run: |
