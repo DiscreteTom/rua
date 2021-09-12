@@ -73,7 +73,7 @@ func (l *websocketListener) Start() error {
 			// upgrade http to websocket
 			c, err := upgrader.Upgrade(w, r, nil)
 			if err != nil {
-				l.logger.Error(err)
+				l.logger.Error("rua.WebsocketListener.Upgrade:", err)
 				return
 			}
 
