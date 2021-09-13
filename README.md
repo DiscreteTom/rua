@@ -85,6 +85,7 @@ func main() {
 - [基本示例](https://github.com/DiscreteTom/rua/tree/main/example)
 - [Websocket](https://github.com/DiscreteTom/rua/tree/main/plugin/network/websocket/_example)
 - [KCP](https://github.com/DiscreteTom/rua/tree/main/plugin/network/kcp/_example)
+- [一个极其简单的H5多人平台跳跃游戏](https://github.com/DiscreteTom/rua-platformer)
 
 ## [日志](https://github.com/DiscreteTom/rua/blob/main/logger.go)
 
@@ -177,6 +178,7 @@ func main() {
 - [Basics](https://github.com/DiscreteTom/rua/tree/main/example)
 - [Websocket](https://github.com/DiscreteTom/rua/tree/main/plugin/network/websocket/_example)
 - [KCP](https://github.com/DiscreteTom/rua/tree/main/plugin/network/kcp/_example)
+- [A simplest H5 multiplayer platformer game](https://github.com/DiscreteTom/rua-platformer)
 
 ## [Logging](https://github.com/DiscreteTom/rua/blob/main/logger.go)
 
