@@ -22,6 +22,9 @@ type GameServer interface {
 	AddPeer(Peer) int
 	RemovePeer(peerId int) error
 	AppendPeerMsg(p Peer, d []byte)
+	Stop()
+	ForEachPeer(f func(id int, peer Peer))
+	Peer(id int) (Peer, error)
 }
 
 type SmallestLogger interface {
