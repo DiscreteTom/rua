@@ -7,24 +7,24 @@ import (
 
 type BroadcastPeer struct {
 	*peer.SafePeer
-	sync   bool
-	filter func(p rua.Peer) bool
+	sync     bool
+	selector func(p rua.Peer) bool
 }
 
 // Create a new BroadcastPeer.
 // By default, the broadcast peer will broadcast message to all other peers except it self.
-// You can use `WithFilter` to change this hebavior.
+// You can use `WithSelector` to change this hebavior.
 func NewBroadcastPeer(gs rua.GameServer) *BroadcastPeer {
 	bp := &BroadcastPeer{
 		SafePeer: peer.NewSafePeer(gs),
 		sync:     false,
 	}
-	bp.filter = func(p rua.Peer) bool { return p.Id() != bp.Id() }
+	bp.selector = func(p rua.Peer) bool { return p.Id() != bp.Id() }
 
 	bp.SafePeer.
 		OnWrite(func(b []byte) error {
 			work := func(peer rua.Peer) {
-				if bp.filter(peer) {
+				if bp.selector(peer) {
 					if err := peer.Write(b); err != nil {
 						bp.Logger().Error("rua.BroadcastPeer.Write:", err)
 					}
@@ -44,9 +44,9 @@ func NewBroadcastPeer(gs rua.GameServer) *BroadcastPeer {
 	return bp
 }
 
-// If filter return true, then the target peer will be broadcasted.
-func (bp *BroadcastPeer) WithFilter(f func(p rua.Peer) bool) *BroadcastPeer {
-	bp.filter = f
+// If the selector returns true, the target peer will be notified.
+func (bp *BroadcastPeer) WithSelector(f func(p rua.Peer) bool) *BroadcastPeer {
+	bp.selector = f
 	return bp
 }
 
