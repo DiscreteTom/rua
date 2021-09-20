@@ -3,6 +3,7 @@
 ## v0.4.3
 
 - Add `MultiplexPeer`.
+- Add `BroadcastPeer`.
 
 ## v0.4.2
 
