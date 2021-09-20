@@ -2,9 +2,9 @@
 
 ## v0.4.3
 
-- Add `MultiplexPeer`.
 - Add `BroadcastPeer`.
 - Change model.
+- Add helper functions. See `utils.go`.
 
 ## v0.4.2
 
