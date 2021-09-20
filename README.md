@@ -68,7 +68,7 @@ func main() {
 
 	s.OnPeerMsg(func(msg *rua.PeerMsg) {
 		// broadcast to everyone
-		s.ForEachPeer(func(id int, peer rua.Peer) {
+		s.ForEachPeer(func(peer rua.Peer) {
 			peer.Write(result)
 		})
 	}
@@ -162,7 +162,7 @@ func main() {
 
 	s.OnPeerMsg(func(msg *rua.PeerMsg) {
 		// broadcast to everyone
-		s.ForEachPeer(func(id int, peer rua.Peer) {
+		s.ForEachPeer(func(peer rua.Peer) {
 			peer.Write(result)
 		})
 	}

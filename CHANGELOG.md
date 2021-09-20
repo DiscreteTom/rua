@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.4.3
+## v0.5.1
 
 - Add `BroadcastPeer`.
 - Change model.
