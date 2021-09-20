@@ -10,6 +10,8 @@ type Peer interface {
 	Id() int
 	SetTag(string)
 	Tag() string
+	Logger() Logger
+	SetLogger(Logger)
 }
 
 type PeerMsg struct {

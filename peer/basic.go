@@ -52,6 +52,10 @@ func (bp *BasicPeer) Logger() rua.Logger {
 	return bp.logger
 }
 
+func (bp *BasicPeer) SetLogger(l rua.Logger) {
+	bp.logger = l
+}
+
 func (bp *BasicPeer) SetTag(t string) {
 	bp.tag = t
 }
