@@ -4,6 +4,7 @@
 
 - Add `MultiplexPeer`.
 - Add `BroadcastPeer`.
+- Change model.
 
 ## v0.4.2
 
