@@ -14,22 +14,23 @@ type BroadcastPeer struct {
 }
 
 // Create a new BroadcastPeer.
-// By default, the broadcast peer will broadcast message to all other peers except it self.
-// You can use `WithSelector` to change this hebavior.
+// By default, the broadcast peer will broadcast message in parallel to all other peers except it self.
+// You can use `WithSelector` to select broadcast targets.
+// The BroadcastPeer will never write message to itself to avoid recursive call.
 func NewBroadcastPeer(gs rua.GameServer) *BroadcastPeer {
 	bp := &BroadcastPeer{
 		SafePeer: peer.NewSafePeer(gs),
 		sync:     false,
+		selector: func(p rua.Peer) bool { return true },
 	}
-	bp.selector = func(p rua.Peer) bool { return p.Id() != bp.Id() }
 
 	bp.SafePeer.
 		OnWrite(func(b []byte) error {
 			wg := sync.WaitGroup{}
 
 			bp.GameServer().ForEachPeer(func(peer rua.Peer) {
-				wg.Add(1)
-				if bp.selector(peer) {
+				if bp.Id() != peer.Id() && bp.selector(peer) {
+					wg.Add(1)
 					go func(p rua.Peer) {
 						rua.WriteOrLog(p, b)
 						wg.Done()
