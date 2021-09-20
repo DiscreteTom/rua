@@ -27,7 +27,7 @@ func NewBroadcastPeer(gs rua.GameServer) *BroadcastPeer {
 		OnWrite(func(b []byte) error {
 			wg := sync.WaitGroup{}
 
-			bp.GameServer().ForEachPeer(func(id int, peer rua.Peer) {
+			bp.GameServer().ForEachPeer(func(peer rua.Peer) {
 				wg.Add(1)
 				if bp.selector(peer) {
 					go func(p rua.Peer) {
