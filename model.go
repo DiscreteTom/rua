@@ -25,7 +25,7 @@ type GameServer interface {
 	RemovePeer(peerId int) error
 	AppendPeerMsg(p Peer, d []byte)
 	Stop()
-	ForEachPeer(f func(id int, peer Peer))
+	ForEachPeer(f func(peer Peer))
 	Peer(id int) (Peer, error)
 }
 
