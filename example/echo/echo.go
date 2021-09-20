@@ -8,9 +8,7 @@ import (
 func main() {
 	s := rua.NewEventDrivenServer()
 	s.OnPeerMsg(func(msg *rua.PeerMsg) {
-		if err := msg.Peer.Write(append([]byte(">>"), msg.Data...)); err != nil {
-			s.Logger().Error(err)
-		}
+		rua.WriteOrLog(msg.Peer, append([]byte(">>"), msg.Data...))
 	})
 
 	s.AddPeer(debug.NewStdioPeer(s))
