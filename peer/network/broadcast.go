@@ -1,6 +1,8 @@
 package network
 
 import (
+	"sync"
+
 	"github.com/DiscreteTom/rua"
 	"github.com/DiscreteTom/rua/peer"
 )
@@ -23,20 +25,20 @@ func NewBroadcastPeer(gs rua.GameServer) *BroadcastPeer {
 
 	bp.SafePeer.
 		OnWrite(func(b []byte) error {
-			work := func(peer rua.Peer) {
-				if bp.selector(peer) {
-					if err := peer.Write(b); err != nil {
-						bp.Logger().Error("rua.BroadcastPeer.Write:", err)
-					}
-				}
-			}
+			wg := sync.WaitGroup{}
+
 			bp.GameServer().ForEachPeer(func(id int, peer rua.Peer) {
-				if bp.sync {
-					work(peer)
-				} else {
-					go work(peer)
+				wg.Add(1)
+				if bp.selector(peer) {
+					go func(p rua.Peer) {
+						rua.WriteOrLog(p, b)
+						wg.Done()
+					}(peer)
 				}
 			})
+			if bp.sync {
+				wg.Done()
+			}
 			return nil
 		}).
 		WithTag("broadcast")
