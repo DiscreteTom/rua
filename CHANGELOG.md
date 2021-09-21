@@ -3,6 +3,7 @@
 ## v0.5.1
 
 - Add `BroadcastPeer`.
+- Add `BufferPeer`.
 - Change model.
 - Add helper functions. See `utils.go`.
 
