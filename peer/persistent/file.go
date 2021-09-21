@@ -9,7 +9,7 @@ import (
 )
 
 type FilePeer struct {
-	*peer.SafePeer
+	*peer.BufferPeer
 	file     *os.File
 	closed   bool
 	filename string // filename
@@ -17,22 +17,13 @@ type FilePeer struct {
 
 func NewFilePeer(filename string, gs rua.GameServer) *FilePeer {
 	fp := &FilePeer{
-		closed:   true,
-		SafePeer: peer.NewSafePeer(gs),
-		filename: filename,
+		closed:     true,
+		BufferPeer: peer.NewBufferPeer(gs),
+		filename:   filename,
 	}
 
-	fp.SafePeer.
-		OnStartSafe(func() {
-			var err error
-			fp.file, err = os.OpenFile(fp.filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
-			if err != nil {
-				fp.Logger().Error("rua.FileOpenFile:", err)
-			} else {
-				fp.closed = false
-			}
-		}).
-		OnWriteSafe(func(data []byte) error {
+	fp.BufferPeer.
+		OnWrite(func(data []byte) error {
 			if fp.closed {
 				return rua.ErrPeerClosed
 			}
@@ -41,6 +32,15 @@ func NewFilePeer(filename string, gs rua.GameServer) *FilePeer {
 				return err
 			}
 			return fp.file.Sync() // flush to disk
+		}).
+		OnStartSafe(func() {
+			var err error
+			fp.file, err = os.OpenFile(fp.filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+			if err != nil {
+				fp.Logger().Error("rua.FileOpenFile:", err)
+			} else {
+				fp.closed = false
+			}
 		}).
 		OnCloseSafe(func() error {
 			if fp.closed {

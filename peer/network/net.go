@@ -9,7 +9,7 @@ import (
 )
 
 type NetPeer struct {
-	*peer.SafePeer
+	*peer.BufferPeer
 	closed       bool
 	bufSize      int
 	readTimeout  int
@@ -21,7 +21,7 @@ type NetPeer struct {
 // If `timeout` == 0 (in ms), there is no timeout.
 func NewNetPeer(conn net.Conn, gs rua.GameServer) *NetPeer {
 	np := &NetPeer{
-		SafePeer:     peer.NewSafePeer(gs),
+		BufferPeer:   peer.NewBufferPeer(gs),
 		closed:       false,
 		bufSize:      4096,
 		readTimeout:  0,
@@ -29,8 +29,8 @@ func NewNetPeer(conn net.Conn, gs rua.GameServer) *NetPeer {
 		c:            conn,
 	}
 
-	np.SafePeer.
-		OnWriteSafe(func(data []byte) error {
+	np.BufferPeer.
+		OnWrite(func(data []byte) error {
 			if np.closed {
 				return rua.ErrPeerClosed
 			}
@@ -42,14 +42,6 @@ func NewNetPeer(conn net.Conn, gs rua.GameServer) *NetPeer {
 			}
 			_, err := np.c.Write(data)
 			return err
-		}).
-		OnCloseSafe(func() error {
-			if np.closed {
-				return nil
-			}
-
-			np.closed = true
-			return np.c.Close()
 		}).
 		OnStart(func() {
 			for {
@@ -77,6 +69,14 @@ func NewNetPeer(conn net.Conn, gs rua.GameServer) *NetPeer {
 					gs.AppendPeerMsg(np, buf[:n])
 				}
 			}
+		}).
+		OnCloseSafe(func() error {
+			if np.closed {
+				return nil
+			}
+
+			np.closed = true
+			return np.c.Close()
 		}).
 		WithTag("net")
 
