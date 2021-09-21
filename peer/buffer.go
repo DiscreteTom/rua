@@ -11,18 +11,18 @@ type BufferPeer struct {
 	bufferSize   int
 	queue        chan []byte
 	writeTimeout int // write timeout in ms
-	consumer     func(b []byte)
+	consumer     func(b []byte) error
 }
 
 // Create a new BufferPeer.
 // Data write to a BufferPeer will be stored in a buffer.
-// You can use `WithConsumer` to register a consumer to consume those data.
+// You can use `OnWrite` to register a consumer to consume those data.
 func NewBufferPeer(gs rua.GameServer) *BufferPeer {
 	bp := &BufferPeer{
 		SafePeer:     NewSafePeer(gs),
 		bufferSize:   256,
 		writeTimeout: 1000,
-		consumer:     func(b []byte) {},
+		consumer:     func(b []byte) error { return nil },
 	}
 
 	bp.SafePeer.
@@ -49,7 +49,14 @@ func (bp *BufferPeer) WithWriteTimeout(ms int) *BufferPeer {
 	return bp
 }
 
-func (bp *BufferPeer) WithConsumer(f func(b []byte)) *BufferPeer {
+// This hook will NOT be triggered in parallel.
+func (bp *BufferPeer) OnWrite(f func(b []byte) error) *BufferPeer {
+	bp.consumer = f
+	return bp
+}
+
+// `BufferPeer.OnWriteSafe` is the same as `BufferPeer.OnWrite`
+func (bp *BufferPeer) OnWriteSafe(f func(b []byte) error) *BufferPeer {
 	bp.consumer = f
 	return bp
 }
@@ -70,7 +77,9 @@ func onStartFuncWrapper(bp *BufferPeer, f func()) func() {
 		go func() {
 			for {
 				data := <-bp.queue
-				bp.consumer(data)
+				if err := bp.consumer(data); err != nil {
+					bp.Logger().Errorf("rua.BufferPeer.Consume: %v", err)
+				}
 			}
 		}()
 		f()
