@@ -17,7 +17,7 @@ type BufferPeer struct {
 
 // Create a new BufferPeer.
 // Data write to a BufferPeer will be stored in a buffer.
-// Use `WithConsumer` instead of `OnWrite` to register a consumer to consume those data.
+// Use `WithConsumer` instead of `OnWrite` to register a consumer to consume data in buffer.
 // Use `OnStartBuffer` instead of `OnStart` to register the `onStart` hook for BufferPeer.
 func NewBufferPeer(gs rua.GameServer) *BufferPeer {
 	bp := &BufferPeer{
