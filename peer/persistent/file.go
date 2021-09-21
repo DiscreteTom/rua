@@ -34,7 +34,7 @@ func NewFilePeer(filename string, gs rua.GameServer) *FilePeer {
 		}).
 		OnWriteSafe(func(data []byte) error {
 			if fp.closed {
-				return peer.ErrClosed
+				return rua.ErrPeerClosed
 			}
 
 			if _, err := fp.file.Write(data); err != nil {

@@ -32,7 +32,7 @@ func NewNetPeer(conn net.Conn, gs rua.GameServer) *NetPeer {
 	np.SafePeer.
 		OnWriteSafe(func(data []byte) error {
 			if np.closed {
-				return peer.ErrClosed
+				return rua.ErrPeerClosed
 			}
 
 			if np.writeTimeout != 0 {
