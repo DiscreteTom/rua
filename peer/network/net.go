@@ -30,7 +30,7 @@ func NewNetPeer(conn net.Conn, gs rua.GameServer) *NetPeer {
 	}
 
 	np.BufferPeer.
-		OnWrite(func(data []byte) error {
+		WithConsumer(func(data []byte) error {
 			if np.closed {
 				return rua.ErrPeerClosed
 			}
@@ -43,7 +43,7 @@ func NewNetPeer(conn net.Conn, gs rua.GameServer) *NetPeer {
 			_, err := np.c.Write(data)
 			return err
 		}).
-		OnStart(func() {
+		OnStartBuffer(func() {
 			for {
 				buf := make([]byte, np.bufSize)
 				if np.readTimeout != 0 {

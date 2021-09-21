@@ -19,11 +19,11 @@ func NewStdioPeer(gs rua.GameServer) *StdioPeer {
 	}
 
 	p.BufferPeer.
-		OnWrite(func(data []byte) error {
+		WithConsumer(func(data []byte) error {
 			_, err := fmt.Print(string(data))
 			return err
 		}).
-		OnStart(func() {
+		OnStartBuffer(func() {
 			reader := bufio.NewReader(os.Stdin)
 			for {
 				line, err := reader.ReadString('\n')

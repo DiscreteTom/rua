@@ -23,7 +23,7 @@ func NewFilePeer(filename string, gs rua.GameServer) *FilePeer {
 	}
 
 	fp.BufferPeer.
-		OnWrite(func(data []byte) error {
+		WithConsumer(func(data []byte) error {
 			if fp.closed {
 				return rua.ErrPeerClosed
 			}
@@ -33,7 +33,10 @@ func NewFilePeer(filename string, gs rua.GameServer) *FilePeer {
 			}
 			return fp.file.Sync() // flush to disk
 		}).
-		OnStartSafe(func() {
+		OnStartBuffer(func() {
+			fp.Lock()
+			defer fp.Unlock()
+
 			var err error
 			fp.file, err = os.OpenFile(fp.filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 			if err != nil {
