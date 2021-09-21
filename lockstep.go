@@ -77,14 +77,14 @@ func (s *LockstepServer) OnStep(f func(peerMsgs []PeerMsg)) *LockstepServer {
 
 // Return errors from peer.Close() when stop the server.
 func (s *LockstepServer) Start() (errs []error) {
-	errs = []error{}
-
-	timer := time.NewTimer(time.Duration(s.stepLength))
-
 	s.logger.Infof("%s started, step length: %dms", s.name, s.stepLength)
 
+	errs = []error{}
 	loop := true
 	for loop {
+		// reset timer
+		timer := time.NewTimer(time.Duration(s.stepLength) * time.Millisecond)
+
 		select {
 		case <-timer.C:
 			// retrieve peer msgs and reset
@@ -97,8 +97,6 @@ func (s *LockstepServer) Start() (errs []error) {
 			s.onStepHandler(currentPeerMsgs)
 
 			s.currentStep++
-			// reset timer
-			timer = time.NewTimer(time.Duration(s.stepLength) * time.Millisecond)
 		case <-s.stop:
 			loop = false
 		}
