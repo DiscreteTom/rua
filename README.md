@@ -24,6 +24,7 @@
     - [`FilePeer`](https://github.com/DiscreteTom/rua/blob/main/peer/persistent/file.go)
   - 用来实现客户端服务器通信：
     - [`NetPeer`](https://github.com/DiscreteTom/rua/blob/main/peer/network/net.go)
+    - [`MultiplexPeer`](https://github.com/DiscreteTom/rua/blob/main/peer/network/multiplex.go)
     - [plugin/`KcpPeer`](https://github.com/DiscreteTom/rua/tree/main/plugin/network/kcp)
     - [plugin/`WebsocketPeer`](https://github.com/DiscreteTom/rua/tree/main/plugin/network/websocket)
   - 用来实现流式输出数据（异步检测外挂、直播、观战）：
@@ -67,7 +68,7 @@ func main() {
 
 	s.OnPeerMsg(func(msg *rua.PeerMsg) {
 		// broadcast to everyone
-		s.ForEachPeer(func(id int, peer rua.Peer) {
+		s.ForEachPeer(func(peer rua.Peer) {
 			peer.Write(result)
 		})
 	}
@@ -117,6 +118,7 @@ Rua is a highly customizable & scalable game server framework written with [gola
     - [`FilePeer`](https://github.com/DiscreteTom/rua/blob/main/peer/persistent/file.go)
   - For game client connectivity:
     - [`NetPeer`](https://github.com/DiscreteTom/rua/blob/main/peer/network/net.go)
+    - [`MultiplexPeer`](https://github.com/DiscreteTom/rua/blob/main/peer/network/multiplex.go)
     - [plugin/`KcpPeer`](https://github.com/DiscreteTom/rua/tree/main/plugin/network/kcp)
     - [plugin/`WebsocketPeer`](https://github.com/DiscreteTom/rua/tree/main/plugin/network/websocket)
   - For streaming data (for async cheater detection, video streaming and watcher mode):
@@ -160,7 +162,7 @@ func main() {
 
 	s.OnPeerMsg(func(msg *rua.PeerMsg) {
 		// broadcast to everyone
-		s.ForEachPeer(func(id int, peer rua.Peer) {
+		s.ForEachPeer(func(peer rua.Peer) {
 			peer.Write(result)
 		})
 	}

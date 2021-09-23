@@ -1,7 +1,6 @@
 package rua
 
 import (
-	"errors"
 	"sync"
 	"time"
 )
@@ -87,7 +86,7 @@ func (s *EventDrivenServer) RemovePeer(peerId int) (err error) {
 		}
 		delete(s.peers, peerId)
 	} else {
-		err = errors.New("peer not exist")
+		err = ErrPeerNotExist
 	}
 	s.peerLock.Unlock()
 
@@ -95,13 +94,13 @@ func (s *EventDrivenServer) RemovePeer(peerId int) (err error) {
 	return
 }
 
-// Thread safe. Do NOT AddPeer or RemovePeer in f.
-func (s *EventDrivenServer) ForEachPeer(f func(id int, peer Peer)) {
+// Thread safe. Do NOT AddPeer or RemovePeer in f, which will cause dead lock.
+func (s *EventDrivenServer) ForEachPeer(f func(peer Peer)) {
 	s.peerLock.Lock()
 	defer s.peerLock.Unlock()
 
-	for i, p := range s.peers {
-		f(i, p)
+	for _, p := range s.peers {
+		f(p)
 	}
 }
 
@@ -110,7 +109,7 @@ func (s *EventDrivenServer) Peer(id int) (Peer, error) {
 	if p, ok := s.peers[id]; ok {
 		return p, nil
 	} else {
-		return nil, errors.New("peer not exists")
+		return nil, ErrPeerNotExist
 	}
 }
 

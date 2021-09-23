@@ -10,23 +10,20 @@ import (
 )
 
 type StdioPeer struct {
-	*peer.SafePeer
+	*peer.BufferPeer
 }
 
 func NewStdioPeer(gs rua.GameServer) *StdioPeer {
 	p := &StdioPeer{
-		SafePeer: peer.NewSafePeer(gs),
+		BufferPeer: peer.NewBufferPeer(gs),
 	}
 
-	p.SafePeer.
-		OnWriteSafe(func(data []byte) error {
+	p.BufferPeer.
+		WithConsumer(func(data []byte) error {
 			_, err := fmt.Print(string(data))
 			return err
 		}).
-		OnCloseSafe(func() error {
-			return nil
-		}).
-		OnStart(func() {
+		OnStartBuffer(func() {
 			reader := bufio.NewReader(os.Stdin)
 			for {
 				line, err := reader.ReadString('\n')
@@ -35,6 +32,9 @@ func NewStdioPeer(gs rua.GameServer) *StdioPeer {
 				}
 				p.GameServer().AppendPeerMsg(p, []byte(line))
 			}
+		}).
+		OnCloseSafe(func() error {
+			return nil
 		}).
 		WithTag("stdio")
 

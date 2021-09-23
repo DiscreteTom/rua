@@ -9,7 +9,7 @@ import (
 func main() {
 	s := rua.NewEventDrivenServer()
 	s.OnPeerMsg(func(msg *rua.PeerMsg) {
-		s.ForEachPeer(func(id int, peer rua.Peer) {
+		s.ForEachPeer(func(peer rua.Peer) {
 			if peer.Tag() == "file" {
 				peer.Write(msg.Data)
 			}

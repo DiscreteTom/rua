@@ -10,6 +10,8 @@ type Peer interface {
 	Id() int
 	SetTag(string)
 	Tag() string
+	Logger() Logger
+	SetLogger(Logger)
 }
 
 type PeerMsg struct {
@@ -22,6 +24,9 @@ type GameServer interface {
 	AddPeer(Peer) int
 	RemovePeer(peerId int) error
 	AppendPeerMsg(p Peer, d []byte)
+	Stop()
+	ForEachPeer(f func(peer Peer))
+	Peer(id int) (Peer, error)
 }
 
 type SmallestLogger interface {

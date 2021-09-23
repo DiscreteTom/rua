@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.5.0
+
+- Add `BroadcastPeer`.
+- Add `BufferPeer`.
+- Change model.
+- Add helper functions. See `utils.go`.
+
 ## v0.4.2
 
 - Enhance peers' security.
@@ -11,19 +18,19 @@
 ## v0.4.0
 
 - Optimize code.
-- Add SafePeer.
+- Add `SafePeer`.
 - Almost all APIs are changed.
 
 ## v0.3.0
 
 - Supported server types:
-  - LockstepServer.
-  - EventDrivenServer
+  - `LockstepServer`.
+  - `EventDrivenServer`
 - Supported peers:
-  - StdioPeer
-  - FilePeer
-  - NetPeer
-  - KcpPeer
-  - WebsocketPeer
-  - KinesisPeer
-  - BasicPeer
+  - `StdioPeer`
+  - `FilePeer`
+  - `NetPeer`
+  - `KcpPeer`
+  - `WebsocketPeer`
+  - `KinesisPeer`
+  - `BasicPeer`
