@@ -111,7 +111,7 @@ func (l *KcpListener) Start() error {
 		c, err := listener.AcceptKCP()
 		if err != nil {
 			if attempts < l.maxAttempts {
-				l.logger.Warn("ruaKcp.Start.AcceptKCP:", err)
+				l.logger.Warn("rua.kcp.Start.AcceptKCP:", err)
 				attempts++
 			} else {
 				return err
@@ -121,7 +121,7 @@ func (l *KcpListener) Start() error {
 			if l.guardian == nil || l.guardian(c) {
 				con, err := l.upgrader(c)
 				if err != nil {
-					l.logger.Warn("ruaKcp.Start.Guardian:", err)
+					l.logger.Warn("rua.kcp.Start.Guardian:", err)
 				} else {
 					l.gs.AddPeer(
 						network.NewNetPeer(con, l.gs).
