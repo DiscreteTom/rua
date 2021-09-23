@@ -23,7 +23,7 @@ func NewWebsocketPeer(c *websocket.Conn, gs rua.GameServer) *WebsocketPeer {
 	wp.SafePeer.
 		OnWriteSafe(func(data []byte) error {
 			if wp.closed {
-				return peer.ErrClosed
+				return rua.ErrPeerClosed
 			}
 			return wp.c.WriteMessage(websocket.BinaryMessage, data)
 		}).
