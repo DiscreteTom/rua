@@ -24,7 +24,7 @@
     - [`FilePeer`](https://github.com/DiscreteTom/rua/blob/main/peer/persistent/file.go)
   - 用来实现客户端服务器通信：
     - [`NetPeer`](https://github.com/DiscreteTom/rua/blob/main/peer/network/net.go)
-    - [`MultiplexPeer`](https://github.com/DiscreteTom/rua/blob/main/peer/network/multiplex.go)
+    - [`BroadcastPeer`](https://github.com/DiscreteTom/rua/blob/main/peer/network/broadcast.go)
     - [plugin/`KcpPeer`](https://github.com/DiscreteTom/rua/tree/main/plugin/network/kcp)
     - [plugin/`WebsocketPeer`](https://github.com/DiscreteTom/rua/tree/main/plugin/network/websocket)
   - 用来实现流式输出数据（异步检测外挂、直播、观战）：
@@ -32,6 +32,7 @@
   - Helper Peer，用来快速构建您的自定义Peer
     - [BasicPeer](https://github.com/DiscreteTom/rua/blob/main/peer/basic.go)
     - [SafePeer](https://github.com/DiscreteTom/rua/blob/main/peer/safe.go)
+    - [BufferPeer](https://github.com/DiscreteTom/rua/blob/main/peer/buffer.go)
   - 自定义Peer，只要实现了[`rua.Peer`](https://github.com/DiscreteTom/rua/blob/main/model.go)接口即可
 - 级联架构
   - 使用单独的服务器实现观战、广播、持久化、流输出等功能
@@ -118,7 +119,7 @@ Rua is a highly customizable & scalable game server framework written with [gola
     - [`FilePeer`](https://github.com/DiscreteTom/rua/blob/main/peer/persistent/file.go)
   - For game client connectivity:
     - [`NetPeer`](https://github.com/DiscreteTom/rua/blob/main/peer/network/net.go)
-    - [`MultiplexPeer`](https://github.com/DiscreteTom/rua/blob/main/peer/network/multiplex.go)
+    - [`BroadcastPeer`](https://github.com/DiscreteTom/rua/blob/main/peer/network/broadcast.go)
     - [plugin/`KcpPeer`](https://github.com/DiscreteTom/rua/tree/main/plugin/network/kcp)
     - [plugin/`WebsocketPeer`](https://github.com/DiscreteTom/rua/tree/main/plugin/network/websocket)
   - For streaming data (for async cheater detection, video streaming and watcher mode):
@@ -126,6 +127,7 @@ Rua is a highly customizable & scalable game server framework written with [gola
   - Helper peers that you can use to build your own peer.
     - [BasicPeer](https://github.com/DiscreteTom/rua/blob/main/peer/basic.go)
     - [SafePeer](https://github.com/DiscreteTom/rua/blob/main/peer/safe.go)
+    - [BufferPeer](https://github.com/DiscreteTom/rua/blob/main/peer/buffer.go)
   - Any custom peer implements the interface [`rua.Peer`](https://github.com/DiscreteTom/rua/blob/main/model.go).
 - Cascade architecture.
   - You can use a dedicated game server to realize watcher mode, video streaming, persistence and stream output.
