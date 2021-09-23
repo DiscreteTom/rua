@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.5.1
+## v0.5.0
 
 - Add `BroadcastPeer`.
 - Add `BufferPeer`.
