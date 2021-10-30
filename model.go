@@ -14,28 +14,28 @@ type Stoppable interface {
 }
 
 type StoppableHandle struct {
-	stopChan chan bool
+	stop_tx chan bool
 }
 
-func NewStoppableHandle(stopChan chan bool) StoppableHandle {
-	return StoppableHandle{stopChan: stopChan}
+func NewStoppableHandle(stop_tx chan bool) StoppableHandle {
+	return StoppableHandle{stop_tx: stop_tx}
 }
 
 func (h *StoppableHandle) Stop() {
-	stopChan := h.stopChan
+	stop_tx := h.stop_tx
 	go func() {
-		stopChan <- true
+		stop_tx <- true
 	}()
 }
 
 type WritableStoppableHandle struct {
 	StoppableHandle
-	msgChan        chan []byte
+	tx             chan []byte
 	writeTimeoutMs int64
 }
 
-func NewWritableStoppableHandle(msgChan chan []byte, stopChan chan bool, writeTimeoutMs int64) WritableStoppableHandle {
-	return WritableStoppableHandle{msgChan: msgChan, StoppableHandle: NewStoppableHandle(stopChan), writeTimeoutMs: writeTimeoutMs}
+func NewWritableStoppableHandle(tx chan []byte, stop_tx chan bool, writeTimeoutMs int64) WritableStoppableHandle {
+	return WritableStoppableHandle{tx: tx, StoppableHandle: NewStoppableHandle(stop_tx), writeTimeoutMs: writeTimeoutMs}
 }
 
 func (h *WritableStoppableHandle) Write(data []byte) error {
@@ -44,7 +44,7 @@ func (h *WritableStoppableHandle) Write(data []byte) error {
 	select {
 	case <-c:
 		return errors.New("write time out")
-	case h.msgChan <- data:
+	case h.tx <- data:
 		return nil
 	}
 }
