@@ -2,6 +2,7 @@ package rua
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 )
 
@@ -41,20 +42,28 @@ func (n StdioNode) Go() WritableStoppableHandle {
 	stopChan := n.stopChan
 	msgChan := n.msgChan
 
+	// reader thread
 	go func() {
 		reader := bufio.NewReader(os.Stdin)
 		loop := true
 		for loop {
 			line, err := reader.ReadString('\n')
-			if err != nil && err.Error() != "EOF" {
+			if len(line) == 0 || err != nil {
 				break
 			}
 			select {
-			case msgChan <- []byte(line):
+			case msgChan <- []byte(line[:len(line)-1]):
 				continue
 			case <-stopChan:
 				loop = false
 			}
+		}
+	}()
+
+	// writer thread
+	go func() {
+		for data := range msgChan {
+			fmt.Println(string(data))
 		}
 	}()
 
