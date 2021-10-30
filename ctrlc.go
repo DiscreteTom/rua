@@ -24,12 +24,12 @@ func (c Ctrlc) Go() {
 	}()
 }
 
-func (self Ctrlc) Wait() {
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
+func (c Ctrlc) Wait() {
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, os.Interrupt)
 	go func() {
-		for _ = range c {
-			self.handler()
+		for range ch {
+			c.handler()
 			break
 		}
 	}()
