@@ -27,10 +27,8 @@ func (c Ctrlc) Go() {
 func (c Ctrlc) Wait() {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt)
-	go func() {
-		for range ch {
-			c.handler()
-			break
-		}
-	}()
+	for range ch {
+		c.handler()
+		break
+	}
 }
