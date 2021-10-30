@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## v0.6.0
+
+Inspired by the [ruast](https://github.com/DiscreteTom/ruast) project, refactor this project.
+
+Nodes:
+
+- StdioNode
+- Ctrlc
+- FileNode
+- Lockstep
+
+Model:
+
+- StoppableHandle
+- WritableStoppableHandle
+
 ## v0.5.0
 
 - Add `BroadcastPeer`.
