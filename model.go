@@ -1,63 +1,55 @@
 package rua
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
-type Peer interface {
-	Write([]byte) error
-	Close() error
-	Start() // start and wait
-	SetId(int)
-	Id() int
-	SetTag(string)
-	Tag() string
-	Logger() Logger
-	SetLogger(Logger)
+type Writable interface {
+	Write(data []byte) error
 }
 
-type PeerMsg struct {
-	Peer Peer
-	Data []byte
-	Time time.Time
-}
-
-type GameServer interface {
-	AddPeer(Peer) int
-	RemovePeer(peerId int) error
-	AppendPeerMsg(p Peer, d []byte)
+type Stoppable interface {
 	Stop()
-	ForEachPeer(f func(peer Peer))
-	Peer(id int) (Peer, error)
 }
 
-type SmallestLogger interface {
-	Print(v ...interface{})
+type StoppableHandle struct {
+	stopChan chan bool
 }
 
-// You can use `NewBasicSimpleLogger` to create a SimpleLogger.
-type SimpleLogger interface {
-	Trace(v ...interface{})
-	Debug(v ...interface{})
-	Info(v ...interface{})
-	Warn(v ...interface{})
-	Error(v ...interface{})
-	Fatal(v ...interface{})
-	Panic(v ...interface{})
+func NewStoppableHandle(stopChan chan bool) StoppableHandle {
+	return StoppableHandle{stopChan: stopChan}
 }
 
-// You can use `NewBasicLogger` to create a Logger.
-type Logger interface {
-	Trace(v ...interface{})
-	Debug(v ...interface{})
-	Info(v ...interface{})
-	Warn(v ...interface{})
-	Error(v ...interface{})
-	Fatal(v ...interface{})
-	Panic(v ...interface{})
-	Tracef(format string, v ...interface{})
-	Debugf(format string, v ...interface{})
-	Infof(format string, v ...interface{})
-	Warnf(format string, v ...interface{})
-	Errorf(format string, v ...interface{})
-	Fatalf(format string, v ...interface{})
-	Panicf(format string, v ...interface{})
+func (h *StoppableHandle) Stop() {
+	stopChan := h.stopChan
+	go func() {
+		stopChan <- true
+	}()
+}
+
+type WritableStoppableHandle struct {
+	StoppableHandle
+	msgChan        chan []byte
+	writeTimeoutMs int64
+}
+
+func NewWritableStoppableHandle(msgChan chan []byte, stopChan chan bool, writeTimeoutMs int64) WritableStoppableHandle {
+	return WritableStoppableHandle{msgChan: msgChan, StoppableHandle: NewStoppableHandle(stopChan), writeTimeoutMs: writeTimeoutMs}
+}
+
+func (h *WritableStoppableHandle) Write(data []byte) error {
+	c := make(chan bool)
+	go Wait(h.writeTimeoutMs, c)
+	select {
+	case <-c:
+		return errors.New("write time out")
+	case h.msgChan <- data:
+		return nil
+	}
+}
+
+func Wait(ms int64, c chan<- bool) {
+	time.Sleep(time.Millisecond * time.Duration(ms))
+	c <- true
 }
