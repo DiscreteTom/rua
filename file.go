@@ -8,7 +8,7 @@ import (
 type FileNode struct {
 	handle   WritableStoppableHandle
 	filename string
-	stop_rx  chan bool
+	stopRx   chan bool
 	rx       chan []byte
 }
 
@@ -18,7 +18,7 @@ func NewFileNode(buffer uint, timeout int64) FileNode {
 	return FileNode{
 		handle:   NewWritableStoppableHandle(msg_chan, stop_chan, timeout),
 		filename: "",
-		stop_rx:  stop_chan,
+		stopRx:   stop_chan,
 		rx:       msg_chan,
 	}
 }
@@ -47,7 +47,7 @@ func (n FileNode) Go() (*WritableStoppableHandle, error) {
 	}
 
 	rx := n.rx
-	stop_rx := n.stop_rx
+	stopRx := n.stopRx
 
 	go func() {
 		loop := true
@@ -59,7 +59,7 @@ func (n FileNode) Go() (*WritableStoppableHandle, error) {
 				} else if err = file.Sync(); err != nil {
 					loop = false
 				}
-			case <-stop_rx:
+			case <-stopRx:
 				loop = false
 			}
 		}

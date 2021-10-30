@@ -14,17 +14,17 @@ type Stoppable interface {
 }
 
 type StoppableHandle struct {
-	stop_tx chan bool
+	stopTx chan bool
 }
 
-func NewStoppableHandle(stop_tx chan bool) StoppableHandle {
-	return StoppableHandle{stop_tx: stop_tx}
+func NewStoppableHandle(stopTx chan bool) StoppableHandle {
+	return StoppableHandle{stopTx: stopTx}
 }
 
 func (h *StoppableHandle) Stop() {
-	stop_tx := h.stop_tx
+	stopTx := h.stopTx
 	go func() {
-		stop_tx <- true
+		stopTx <- true
 	}()
 }
 
@@ -34,8 +34,8 @@ type WritableStoppableHandle struct {
 	writeTimeoutMs int64
 }
 
-func NewWritableStoppableHandle(tx chan []byte, stop_tx chan bool, writeTimeoutMs int64) WritableStoppableHandle {
-	return WritableStoppableHandle{tx: tx, StoppableHandle: NewStoppableHandle(stop_tx), writeTimeoutMs: writeTimeoutMs}
+func NewWritableStoppableHandle(tx chan []byte, stopTx chan bool, writeTimeoutMs int64) WritableStoppableHandle {
+	return WritableStoppableHandle{tx: tx, StoppableHandle: NewStoppableHandle(stopTx), writeTimeoutMs: writeTimeoutMs}
 }
 
 func (h *WritableStoppableHandle) Write(data []byte) error {

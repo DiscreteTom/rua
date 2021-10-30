@@ -10,7 +10,7 @@ type StdioNode struct {
 	msgHandler func([]byte)
 	handle     WritableStoppableHandle
 	rx         chan []byte
-	stop_rx    chan bool
+	stopRx     chan bool
 }
 
 func NewStdioNode(buffer uint, writeTimeoutMs int64) StdioNode {
@@ -21,7 +21,7 @@ func NewStdioNode(buffer uint, writeTimeoutMs int64) StdioNode {
 		msgHandler: func(_ []byte) {},
 		handle:     NewWritableStoppableHandle(msgChan, stopChan, writeTimeoutMs),
 		rx:         msgChan,
-		stop_rx:    stopChan,
+		stopRx:     stopChan,
 	}
 }
 
@@ -39,7 +39,7 @@ func (n *StdioNode) Handle() WritableStoppableHandle {
 }
 
 func (n StdioNode) Go() WritableStoppableHandle {
-	stop_rx := n.stop_rx
+	stopRx := n.stopRx
 	rx := n.rx
 	msgHandler := n.msgHandler
 
@@ -53,7 +53,7 @@ func (n StdioNode) Go() WritableStoppableHandle {
 				break
 			}
 			select {
-			case <-stop_rx:
+			case <-stopRx:
 				loop = false
 			default:
 				msgHandler([]byte(line[:len(line)-1]))
