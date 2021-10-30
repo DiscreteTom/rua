@@ -28,7 +28,7 @@ func DefaultStdioNode() StdioNode {
 	return NewStdioNode(16, 1000)
 }
 
-func (n *StdioNode) OnMsg(f func([]byte)) *StdioNode {
+func (n StdioNode) OnMsg(f func([]byte)) StdioNode {
 	n.msgHandler = f
 	return n
 }
