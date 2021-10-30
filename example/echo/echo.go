@@ -2,15 +2,14 @@ package main
 
 import (
 	"github.com/DiscreteTom/rua"
-	"github.com/DiscreteTom/rua/peer/debug"
 )
 
 func main() {
-	s := rua.NewEventDrivenServer()
-	s.OnPeerMsg(func(msg *rua.PeerMsg) {
-		rua.WriteOrLog(msg.Peer, append(msg.Data, []byte("\n>>> ")...))
-	})
+	node := rua.DefaultStdioNode()
+	handle := node.Handle()
+	node.OnMsg(func(b []byte) { handle.Write(b) }).Go()
 
-	s.AddPeer(debug.NewStdioPeer(s))
-	s.Start()
+	rua.NewCtrlc().OnSignal(func() {
+		handle.Stop()
+	}).Wait()
 }
