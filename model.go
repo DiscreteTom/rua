@@ -62,6 +62,7 @@ func (b *HandleBuilder) TimeoutMs(timeoutMs uint64) *HandleBuilder {
 	return b
 }
 
+// Return error if missing `stopTx` or `tx`.
 func (b HandleBuilder) Build() (*Handle, error) {
 	if b.stopTx == nil {
 		return nil, errors.New("missing stopTx")
@@ -72,6 +73,7 @@ func (b HandleBuilder) Build() (*Handle, error) {
 	return &Handle{tx: b.tx, StopOnlyHandle: StopOnlyHandle{stopTx: b.stopTx}, timeoutMs: b.timeoutMs}, nil
 }
 
+// Return error if missing `stopTx`.
 func (b HandleBuilder) BuildStopOnly() (*StopOnlyHandle, error) {
 	if b.stopTx == nil {
 		return nil, errors.New("missing stopTx")
