@@ -6,37 +6,39 @@ import (
 )
 
 type FileNode struct {
-	handle   WritableStoppableHandle
+	handle   *Handle
 	filename string
-	stopRx   chan bool
-	rx       chan []byte
+	stopRx   chan *StopPayload
+	rx       chan *WritePayload
 }
 
-func NewFileNode(buffer uint, timeout int64) FileNode {
-	stop_chan := make(chan bool)
-	msg_chan := make(chan []byte, buffer)
-	return FileNode{
-		handle:   NewWritableStoppableHandle(msg_chan, stop_chan, timeout),
+func NewFileNode(buffer uint) *FileNode {
+	stopChan := make(chan *StopPayload)
+	msgChan := make(chan *WritePayload, buffer)
+
+	handle, _ := NewHandleBuilder().StopTx(stopChan).Tx(msgChan).Build()
+	return &FileNode{
+		handle:   handle,
 		filename: "",
-		stopRx:   stop_chan,
-		rx:       msg_chan,
+		stopRx:   stopChan,
+		rx:       msgChan,
 	}
 }
 
-func DefaultFileNode() FileNode {
-	return NewFileNode(16, 1000)
+func DefaultFileNode() *FileNode {
+	return NewFileNode(16)
 }
 
-func (n FileNode) Filename(name string) FileNode {
+func (n *FileNode) Filename(name string) *FileNode {
 	n.filename = name
 	return n
 }
 
-func (n *FileNode) Handle() WritableStoppableHandle {
+func (n *FileNode) Handle() *Handle {
 	return n.handle
 }
 
-func (n FileNode) Go() (*WritableStoppableHandle, error) {
+func (n FileNode) Go() (*Handle, error) {
 	if len(n.filename) == 0 {
 		return nil, errors.New("missing filename")
 	}
@@ -53,17 +55,22 @@ func (n FileNode) Go() (*WritableStoppableHandle, error) {
 		loop := true
 		for loop {
 			select {
-			case data := <-rx:
-				if _, err := file.Write(data); err != nil {
+			case payload := <-rx:
+				if _, err := file.Write(payload.Data); err != nil {
+					payload.Callback(err)
 					loop = false
 				} else if err = file.Sync(); err != nil {
+					payload.Callback(err)
 					loop = false
+				} else {
+					payload.Callback(nil)
 				}
-			case <-stopRx:
+			case payload := <-stopRx:
+				payload.Callback(nil)
 				loop = false
 			}
 		}
 	}()
 
-	return &n.handle, nil
+	return n.handle, nil
 }
