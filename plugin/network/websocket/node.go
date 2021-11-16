@@ -59,9 +59,10 @@ func (n *WsNode) Go() *rua.Handle {
 			default:
 				_, msg, err := n.c.ReadMessage()
 				if len(msg) == 0 || err != nil {
-					break
+					loop = false
+				} else {
+					n.msgHandler([]byte(msg))
 				}
-				n.msgHandler([]byte(msg))
 			}
 		}
 		writerStopper <- true
