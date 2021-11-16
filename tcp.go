@@ -150,7 +150,7 @@ func (n *TcpNode) Go() *Handle {
 			case <-writerStopper:
 				loop = false
 			case payload := <-n.rx:
-				_, err := n.conn.Write(payload.Data)
+				_, err := n.conn.Write(append(payload.Data, '\n'))
 				payload.Callback(err)
 				if err != nil {
 					loop = false
