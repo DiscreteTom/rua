@@ -70,7 +70,11 @@ func (n StdioNode) Go() *Handle {
 					if len(line) == 0 || err != nil {
 						break
 					}
-					inputHandler([]byte(line[:len(line)-1]))
+					line = line[:len(line)-1] // remove \n
+					if line[len(line)-1] == '\r' {
+						line = line[:len(line)-1] // remove \r
+					}
+					inputHandler([]byte(line))
 				}
 			}
 		}()
