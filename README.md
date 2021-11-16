@@ -24,6 +24,43 @@ go get github.com/DiscreteTom/rua
 go get github.com/DiscreteTom/rua/plugin/network/websocket
 ```
 
+## 举个例子
+
+下面的代码创建了一个 WebSocket 广播服务器：
+
+```go
+package main
+
+import (
+	"github.com/DiscreteTom/rua"
+	"github.com/DiscreteTom/rua/plugin/network/websocket"
+)
+
+// Use `wscat -c ws://127.0.0.1:8080` to connect to the websocket server.
+func main() {
+	// create broadcaster
+	bc := rua.NewBroadcaster()
+
+	// websocket listener
+	ws, _ := websocket.NewWsListener("127.0.0.1:8080").OnNewPeer(func(wn *websocket.WsNode) {
+		// add new peer to the broadcaster
+		bc.AddTarget(wn.OnMsg(func(b []byte) {
+			// new message will be write to the broadcaster
+			bc.Write(b)
+		}).Go())
+	}).Go() // start the listener
+
+	// also broadcast to stdout
+	bc.AddTarget(rua.DefaultStdioNode().Go())
+
+	// wait for ctrl-c
+	rua.NewCtrlc().OnSignal(func() {
+		bc.StopAll()
+		ws.Stop()
+	}).Wait()
+}
+```
+
 ## 更多示例
 
 - [基本示例](https://github.com/DiscreteTom/rua/tree/main/example)
@@ -50,6 +87,43 @@ Install plugins (e.g. [websocket](https://github.com/DiscreteTom/rua/tree/main/p
 
 ```bash
 go get github.com/DiscreteTom/rua/plugin/network/websocket
+```
+
+## Getting Started
+
+The following code shows how to create a websocket broadcast server.
+
+```go
+package main
+
+import (
+	"github.com/DiscreteTom/rua"
+	"github.com/DiscreteTom/rua/plugin/network/websocket"
+)
+
+// Use `wscat -c ws://127.0.0.1:8080` to connect to the websocket server.
+func main() {
+	// create broadcaster
+	bc := rua.NewBroadcaster()
+
+	// websocket listener
+	ws, _ := websocket.NewWsListener("127.0.0.1:8080").OnNewPeer(func(wn *websocket.WsNode) {
+		// add new peer to the broadcaster
+		bc.AddTarget(wn.OnMsg(func(b []byte) {
+			// new message will be write to the broadcaster
+			bc.Write(b)
+		}).Go())
+	}).Go() // start the listener
+
+	// also broadcast to stdout
+	bc.AddTarget(rua.DefaultStdioNode().Go())
+
+	// wait for ctrl-c
+	rua.NewCtrlc().OnSignal(func() {
+		bc.StopAll()
+		ws.Stop()
+	}).Wait()
+}
 ```
 
 ## More Examples
