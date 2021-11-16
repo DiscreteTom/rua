@@ -56,7 +56,7 @@ func (n FileNode) Go() (*Handle, error) {
 		for loop {
 			select {
 			case payload := <-rx:
-				if _, err := file.Write(payload.Data); err != nil {
+				if _, err := file.Write(append(payload.Data, '\n')); err != nil {
 					payload.Callback(err)
 					loop = false
 				} else if err = file.Sync(); err != nil {
