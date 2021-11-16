@@ -5,32 +5,32 @@ import (
 )
 
 type WritePayload struct {
-	data     []byte
-	callback func(error)
+	Data     []byte
+	Callback func(error)
 }
 
 func NewWritePayload(data []byte) *WritePayload {
 	return &WritePayload{
-		data:     data,
-		callback: func(error) {},
+		Data:     data,
+		Callback: func(error) {},
 	}
 }
 
-func (p *WritePayload) Callback(f func(error)) *WritePayload {
-	p.callback = f
+func (p *WritePayload) WithCallback(f func(error)) *WritePayload {
+	p.Callback = f
 	return p
 }
 
 type StopPayload struct {
-	callback func(error)
+	Callback func(error)
 }
 
 func NewStopPayload() *StopPayload {
-	return &StopPayload{callback: func(error) {}}
+	return &StopPayload{Callback: func(error) {}}
 }
 
-func (p *StopPayload) Callback(f func(error)) *StopPayload {
-	p.callback = f
+func (p *StopPayload) WithCallback(f func(error)) *StopPayload {
+	p.Callback = f
 	return p
 }
 
@@ -95,7 +95,7 @@ func (h StopOnlyHandle) Stop() {
 func (h StopOnlyHandle) StopThen(callback func(error)) {
 	stopTx := h.stopTx
 	go func() {
-		stopTx <- NewStopPayload().Callback(callback)
+		stopTx <- NewStopPayload().WithCallback(callback)
 	}()
 }
 
@@ -135,13 +135,13 @@ func innerWrite(tx chan *WritePayload, data []byte, timeoutMs uint64, callback f
 			c := make(chan bool)
 			go Wait(timeoutMs, c)
 			select {
-			case tx <- NewWritePayload(data).Callback(callback):
+			case tx <- NewWritePayload(data).WithCallback(callback):
 			case <-c:
 				callback(errors.New("write timeout"))
 			}
 		} else {
 			// no timeout
-			tx <- NewWritePayload(data).Callback(callback)
+			tx <- NewWritePayload(data).WithCallback(callback)
 		}
 	}()
 }
