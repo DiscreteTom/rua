@@ -50,7 +50,7 @@ func (t *Ticker) Go() (*StopOnlyHandle, error) {
 
 	go func() {
 		var current uint64 = 0
-		ticker := time.NewTicker(time.Duration(t.intervalMs))
+		ticker := time.NewTicker(time.Duration(t.intervalMs) * time.Millisecond)
 		loop := true
 		for loop {
 			select {
