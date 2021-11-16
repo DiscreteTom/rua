@@ -94,7 +94,7 @@ func (b *Broadcaster) innerWrite(data []byte, timeoutMs uint64, callback func(er
 	go func() {
 		b.lock.Lock()
 		for id, target := range b.targets {
-			callback = func(err error) {
+			_callback := func(err error) {
 				if err != nil && !b.keepDeadTargets {
 					go func() {
 						b.RemoveTarget(id)
@@ -103,7 +103,7 @@ func (b *Broadcaster) innerWrite(data []byte, timeoutMs uint64, callback func(er
 				callback(err)
 			}
 
-			target.TimedWriteThen(data, timeoutMs, callback)
+			target.TimedWriteThen(data, timeoutMs, _callback)
 		}
 		b.lock.Unlock()
 	}()
