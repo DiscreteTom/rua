@@ -7,64 +7,85 @@ import (
 )
 
 type StdioNode struct {
-	msgHandler func([]byte)
-	handle     WritableStoppableHandle
-	rx         chan []byte
-	stopRx     chan bool
+	inputHandler func([]byte)
+	handle       *Handle
+	rx           chan *WritePayload
+	stopRx       chan *StopPayload
 }
 
-func NewStdioNode(buffer uint, writeTimeoutMs int64) StdioNode {
-	msgChan := make(chan []byte, buffer)
-	stopChan := make(chan bool)
+func NewStdioNode(buffer uint) *StdioNode {
+	msgChan := make(chan *WritePayload, buffer)
+	stopChan := make(chan *StopPayload)
 
-	return StdioNode{
-		msgHandler: func(_ []byte) {},
-		handle:     NewWritableStoppableHandle(msgChan, stopChan, writeTimeoutMs),
-		rx:         msgChan,
-		stopRx:     stopChan,
+	handle, _ := NewHandleBuilder().StopTx(stopChan).Tx(msgChan).Build()
+
+	return &StdioNode{
+		inputHandler: nil,
+		handle:       handle,
+		rx:           msgChan,
+		stopRx:       stopChan,
 	}
 }
 
-func DefaultStdioNode() StdioNode {
-	return NewStdioNode(16, 1000)
+func DefaultStdioNode() *StdioNode {
+	return NewStdioNode(16)
 }
 
-func (n StdioNode) OnMsg(f func([]byte)) StdioNode {
-	n.msgHandler = f
+func (n *StdioNode) OnInput(f func([]byte)) *StdioNode {
+	n.inputHandler = f
 	return n
 }
 
-func (n *StdioNode) Handle() WritableStoppableHandle {
+func (n *StdioNode) Handle() *Handle {
 	return n.handle
 }
 
-func (n StdioNode) Go() WritableStoppableHandle {
+func (n StdioNode) Go() *Handle {
+	readerStopper := make(chan bool)
+	writerStopper := make(chan bool)
+
 	stopRx := n.stopRx
 	rx := n.rx
-	msgHandler := n.msgHandler
+	inputHandler := n.inputHandler
+
+	// stopper thread
+	go func() {
+		payload := <-stopRx
+		readerStopper <- true
+		writerStopper <- true
+		payload.Callback(nil)
+	}()
 
 	// reader thread
-	go func() {
-		reader := bufio.NewReader(os.Stdin)
-		loop := true
-		for loop {
-			line, err := reader.ReadString('\n')
-			if len(line) == 0 || err != nil {
-				break
+	if inputHandler != nil {
+		go func() {
+			reader := bufio.NewReader(os.Stdin)
+			loop := true
+			for loop {
+				select {
+				case <-readerStopper:
+					loop = false
+				default:
+					line, err := reader.ReadString('\n')
+					if len(line) == 0 || err != nil {
+						break
+					}
+					inputHandler([]byte(line[:len(line)-1]))
+				}
 			}
-			select {
-			case <-stopRx:
-				loop = false
-			default:
-				msgHandler([]byte(line[:len(line)-1]))
-			}
-		}
-	}()
+		}()
+	}
 
 	// writer thread
 	go func() {
-		for data := range rx {
-			fmt.Println(string(data))
+		loop := true
+		for loop {
+			select {
+			case <-writerStopper:
+				loop = false
+			case payload := <-rx:
+				fmt.Println(string(payload.Data))
+			}
 		}
 	}()
 
