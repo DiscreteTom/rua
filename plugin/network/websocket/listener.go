@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/DiscreteTom/rua"
@@ -8,93 +9,100 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type websocketListener struct {
-	name     string
-	addr     string
-	path     string
-	gs       rua.GameServer
-	guardian func(w http.ResponseWriter, r *http.Request) bool
-	peerTag  string
-	logger   rua.Logger
-	certFile string
-	keyFile  string
-	upgrader *websocket.Upgrader
+type wsListener struct {
+	addr            string
+	path            string
+	guardian        func(w http.ResponseWriter, r *http.Request) bool
+	certFile        string
+	keyFile         string
+	upgrader        *websocket.Upgrader
+	peerWriteBuffer uint
+	handle          *rua.StopOnlyHandle
+	stopRx          chan *rua.StopPayload
+	peerHandler     func(*WsNode)
 }
 
-func NewWebsocketListener(addr string, gs rua.GameServer) *websocketListener {
-	return &websocketListener{
-		name:     "WebsocketListener",
-		addr:     addr,
-		path:     "/",
-		gs:       gs,
-		guardian: nil,
-		peerTag:  "websocket",
-		logger:   rua.DefaultLogger(),
-		certFile: "",
-		keyFile:  "",
-		upgrader: &websocket.Upgrader{},
+func NewWsListener(addr string) *wsListener {
+	stopChan := make(chan *rua.StopPayload)
+	handle, _ := rua.NewHandleBuilder().StopTx(stopChan).BuildStopOnly()
+
+	return &wsListener{
+		addr:            addr,
+		path:            "/",
+		guardian:        nil,
+		certFile:        "",
+		keyFile:         "",
+		upgrader:        &websocket.Upgrader{},
+		peerWriteBuffer: 16,
+		handle:          handle,
+		stopRx:          stopChan,
+		peerHandler:     nil,
 	}
 }
 
-func (l *websocketListener) WithName(n string) *websocketListener {
-	l.name = n
+func (l *wsListener) OnNewPeer(f func(*WsNode)) *wsListener {
+	l.peerHandler = f
 	return l
 }
 
-func (l *websocketListener) WithLogger(logger rua.Logger) *websocketListener {
-	l.logger = logger
+func (l *wsListener) PeerWriteBuffer(buffer uint) *wsListener {
+	l.peerWriteBuffer = buffer
 	return l
 }
 
-func (l *websocketListener) WithPath(p string) *websocketListener {
+func (l *wsListener) Path(p string) *wsListener {
 	l.path = p
 	return l
 }
 
-func (l *websocketListener) WithPeerTag(t string) *websocketListener {
-	l.peerTag = t
-	return l
-}
-
-func (l *websocketListener) WithTLS(certFile, keyFile string) *websocketListener {
+func (l *wsListener) TLS(certFile, keyFile string) *wsListener {
 	l.certFile = certFile
 	l.keyFile = keyFile
 	return l
 }
 
-func (l *websocketListener) WithGuardian(g func(w http.ResponseWriter, r *http.Request) bool) *websocketListener {
+func (l *wsListener) Guardian(g func(w http.ResponseWriter, r *http.Request) bool) *wsListener {
 	l.guardian = g
 	return l
 }
 
-func (l *websocketListener) WithOriginChecker(f func(r *http.Request) bool) *websocketListener {
+func (l *wsListener) OriginChecker(f func(r *http.Request) bool) *wsListener {
 	l.upgrader.CheckOrigin = f
 	return l
 }
 
-func (l *websocketListener) WithAllOriginAllowed() *websocketListener {
+func (l *wsListener) AllowAnyOrigin() *wsListener {
 	l.upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	return l
 }
 
-func (l *websocketListener) Start() error {
-	http.HandleFunc(l.path, func(w http.ResponseWriter, r *http.Request) {
-		if l.guardian == nil || l.guardian(w, r) {
-			// upgrade http to websocket
-			c, err := l.upgrader.Upgrade(w, r, nil)
-			if err != nil {
-				l.logger.Error("rua.WebsocketListener.Upgrade:", err)
-				return
-			}
+func (l *wsListener) Handle() *rua.StopOnlyHandle {
+	return l.handle
+}
 
-			l.gs.AddPeer(NewWebsocketPeer(c, l.gs).WithLogger(l.logger).WithTag(l.peerTag))
-		}
-	})
-	l.logger.Infof("%s is listening at %s", l.name, l.addr)
-
-	if len(l.certFile) != 0 && len(l.keyFile) != 0 {
-		return http.ListenAndServeTLS(l.addr, l.certFile, l.keyFile, nil)
-	} else {
-		return http.ListenAndServe(l.addr, nil)
+func (l *wsListener) Go() (*rua.StopOnlyHandle, error) {
+	if l.peerHandler == nil {
+		return nil, errors.New("missing peerHandler")
 	}
+
+	go func() {
+		http.HandleFunc(l.path, func(w http.ResponseWriter, r *http.Request) {
+			if l.guardian == nil || l.guardian(w, r) {
+				// upgrade http to websocket
+				c, err := l.upgrader.Upgrade(w, r, nil)
+				if err != nil {
+					panic(err)
+				}
+
+				l.peerHandler(NewWsNode(c, l.peerWriteBuffer))
+			}
+		})
+		if len(l.certFile) != 0 && len(l.keyFile) != 0 {
+			http.ListenAndServeTLS(l.addr, l.certFile, l.keyFile, nil)
+		} else {
+			http.ListenAndServe(l.addr, nil)
+		}
+	}()
+
+	return l.handle, nil
 }

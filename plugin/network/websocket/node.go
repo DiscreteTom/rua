@@ -2,61 +2,87 @@ package websocket
 
 import (
 	"github.com/DiscreteTom/rua"
-	"github.com/DiscreteTom/rua/peer"
 
 	"github.com/gorilla/websocket"
 )
 
-type WebsocketPeer struct {
-	*peer.SafePeer
-	closed bool
-	c      *websocket.Conn
+type WsNode struct {
+	handle     *rua.Handle
+	c          *websocket.Conn
+	rx         chan *rua.WritePayload
+	stopRx     chan *rua.StopPayload
+	msgHandler func([]byte)
 }
 
-func NewWebsocketPeer(c *websocket.Conn, gs rua.GameServer) *WebsocketPeer {
-	wp := &WebsocketPeer{
-		SafePeer: peer.NewSafePeer(gs),
-		closed:   false,
-		c:        c,
-	}
+func NewWsNode(c *websocket.Conn, buffer uint) *WsNode {
+	msgChan := make(chan *rua.WritePayload, buffer)
+	stopChan := make(chan *rua.StopPayload)
+	handle, _ := rua.NewHandleBuilder().Tx(msgChan).StopTx(stopChan).Build()
 
-	wp.SafePeer.
-		OnWriteSafe(func(data []byte) error {
-			if wp.closed {
-				return rua.ErrPeerClosed
-			}
-			return wp.c.WriteMessage(websocket.BinaryMessage, data)
-		}).
-		OnCloseSafe(func() error {
-			if wp.closed {
-				return nil
-			}
-			wp.closed = true
-			return wp.c.Close() // close websocket conn
-		}).
-		OnStart(func() {
-			for {
-				_, msg, err := wp.c.ReadMessage()
-				if err != nil {
-					if !wp.closed { // not closed by Close()
-						// normally closed by client?
-						if websocket.IsCloseError(err, websocket.CloseNoStatusReceived) {
-							wp.Logger().Infof("rua.WebsocketPeer: peer %d disconnected", wp.Id())
-						} else {
-							wp.Logger().Error("rua.WebsocketPeer.OnStart:", err)
-						}
-						// we should remove the peer
-						if err := wp.GameServer().RemovePeer(wp.Id()); err != nil {
-							wp.Logger().Error("rua.WebsocketPeer.OnStart.RemovePeer:", err)
-						}
-					}
+	return &WsNode{
+		c:          c,
+		handle:     handle,
+		rx:         msgChan,
+		stopRx:     stopChan,
+		msgHandler: func(b []byte) {},
+	}
+}
+
+func (n *WsNode) OnMsg(f func([]byte)) *WsNode {
+	n.msgHandler = f
+	return n
+}
+
+func (n *WsNode) Handle() *rua.Handle {
+	return n.handle
+}
+
+func (n *WsNode) Go() *rua.Handle {
+	readerStopper := make(chan bool)
+	writerStopper := make(chan bool)
+
+	// stopper thread
+	go func() {
+		payload := <-n.stopRx
+		readerStopper <- true
+		writerStopper <- true
+		payload.Callback(nil)
+	}()
+
+	// reader thread
+	go func() {
+		loop := true
+		for loop {
+			select {
+			case <-readerStopper:
+				loop = false
+			default:
+				_, msg, err := n.c.ReadMessage()
+				if len(msg) == 0 || err != nil {
 					break
 				}
-
-				wp.GameServer().AppendPeerMsg(wp, msg)
+				n.msgHandler([]byte(msg))
 			}
-		}).
-		WithTag("websocket")
+		}
+		writerStopper <- true
+	}()
 
-	return wp
+	// writer thread
+	go func() {
+		loop := true
+		for loop {
+			select {
+			case <-writerStopper:
+				loop = false
+			case payload := <-n.rx:
+				err := n.c.WriteMessage(websocket.BinaryMessage, payload.Data)
+				payload.Callback(err)
+				if err != nil {
+					loop = false
+				}
+			}
+		}
+	}()
+
+	return n.handle
 }
