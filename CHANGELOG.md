@@ -2,19 +2,22 @@
 
 ## v0.6.0
 
-Inspired by the [ruast](https://github.com/DiscreteTom/ruast) project, refactor this project.
+Inspired by the [ruast](https://github.com/DiscreteTom/ruast) project (v0.3.0), refactor this project.
 
 Nodes:
 
+- Broadcaster
+- TailNode
+- TcpNode
 - StdioNode
 - Ctrlc
 - FileNode
-- Lockstep
+- Ticker
 
 Model:
 
-- StoppableHandle
-- WritableStoppableHandle
+- Handle
+- StopOnlyHandle
 
 ## v0.5.0
 
