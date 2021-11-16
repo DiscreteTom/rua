@@ -5,11 +5,11 @@ import (
 )
 
 func main() {
-	node := rua.DefaultStdioNode()
-	handle := node.Handle()
-	node.OnMsg(func(b []byte) { handle.Write(b) }).Go()
+	stdio_node := rua.DefaultStdioNode()
+	stdio := stdio_node.Handle()
+	stdio_node.OnInput(func(b []byte) { stdio.Write(b) }).Go()
 
 	rua.NewCtrlc().OnSignal(func() {
-		handle.Stop()
+		stdio.Stop()
 	}).Wait()
 }

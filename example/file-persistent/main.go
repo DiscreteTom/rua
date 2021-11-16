@@ -14,7 +14,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	stdio := rua.DefaultStdioNode().OnMsg(func(b []byte) {
+	stdio := rua.DefaultStdioNode().OnInput(func(b []byte) {
 		file.Write(b)
 	}).Go()
 

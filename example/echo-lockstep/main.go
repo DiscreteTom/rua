@@ -2,18 +2,24 @@ package main
 
 import (
 	"strconv"
+	"sync"
 
 	"github.com/DiscreteTom/rua"
 )
 
 func main() {
+	lock := &sync.Mutex{}
 	state := []byte{}
 
-	stdio := rua.DefaultStdioNode().OnMsg(func(b []byte) {
+	stdio := rua.DefaultStdioNode().OnInput(func(b []byte) {
+		lock.Lock()
+		defer lock.Unlock()
 		state = append(state, b...)
 	}).Go()
 
-	ls := rua.NewLockstep().StepLengthMs(1000).OnStep(func(u uint64) {
+	ls, _ := rua.DefaultTicker().OnTick(func(u uint64) {
+		lock.Lock()
+		defer lock.Unlock()
 		// construct output
 		buffer := []byte{}
 		buffer = append(buffer, []byte(strconv.FormatUint(u, 10))...)
