@@ -2,6 +2,7 @@ package rua
 
 import (
 	"bufio"
+	"errors"
 	"io"
 	"os"
 	"time"
@@ -42,6 +43,10 @@ func (n *TailNode) Handle() *StopOnlyHandle {
 }
 
 func (n *TailNode) Go() (*StopOnlyHandle, error) {
+	if n.lineHandler == nil {
+		return nil, errors.New("missing lineHandler")
+	}
+
 	file, err := os.OpenFile(n.filename, os.O_RDONLY, 0666)
 	if err != nil {
 		return nil, err
