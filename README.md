@@ -8,6 +8,8 @@
 
 事件驱动异步通信框架，基于[Go 语言](https://golang.org/)编写。
 
+此项目还有一个[Rust 语言](https://www.rust-lang.org/)的版本：[Ruast](https://github.com/DiscreteTom/ruast)!
+
 ## 安装
 
 安装服务器本体
@@ -33,6 +35,8 @@ go get github.com/DiscreteTom/rua/plugin/network/websocket
 # English
 
 Rua is an event-driven async messaging framework written with [golang](https://golang.org/).
+
+This project also has a [Rust-lang](https://www.rust-lang.org/) implementation: [Ruast](https://github.com/DiscreteTom/ruast)!
 
 ## Installation
 
