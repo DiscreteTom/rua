@@ -23,9 +23,6 @@ func main() {
 		)
 	}).Go() // start the listener
 
-	// also broadcast to stdout
-	bc.AddTarget(rua.DefaultStdioNode().Go())
-
 	// wait for ctrl-c
 	rua.NewCtrlc().OnSignal(func() {
 		bc.StopAll()
